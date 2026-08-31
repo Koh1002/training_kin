@@ -56,9 +56,12 @@ soreness(筋群, 日) = clamp01( Σ  その日の筋群負荷 / 基準値 × カ
 ### 1. Supabase プロジェクト
 
 1. [supabase.com](https://supabase.com) でプロジェクトを作成する。
-2. SQL Editor で以下を順に実行する（`supabase` CLI があれば `supabase db push` でも可）。
+2. SQL Editor で以下を**順に**実行する（`supabase` CLI があれば `supabase db push` でも可）。
    - `supabase/migrations/0001_schema.sql` — テーブル・RLS・集計ビュー
    - `supabase/migrations/0002_seed_masters.sql` — 筋群18・種目39・英語項目23
+   - `supabase/migrations/0003_setup_status.sql` — セットアップ診断用の関数
+
+   3つとも**何度実行しても壊れません**。途中で失敗したら、直してから頭から流し直して構いません。
 3. Authentication > Providers で **Email** を有効にする（マジックリンクを使うので
    「Confirm email」は有効のままでよい）。
 4. Authentication > URL Configuration の **Redirect URLs** に
@@ -70,8 +73,32 @@ soreness(筋群, 日) = clamp01( Σ  その日の筋群負荷 / 基準値 × カ
 ```bash
 cp .env.example .env.local   # Supabase の URL と anon key を書く
 npm install
+npm run check:setup          # 設定が正しいか診断する
 npm run dev                  # http://localhost:3000
 ```
+
+`.env.local` に入れるのは **anon（publishable）キー**です。`service_role`（`sb_secret_`）キーを
+入れるとブラウザに配信されて RLS が丸ごと迂回されるため、`check:setup` はこれを検出して止めます。
+
+### セットアップの診断
+
+```bash
+npm run check:setup
+```
+
+Supabase に接続して、次を順に確認します。問題があれば、どのファイルを実行すればよいかまで出ます。
+
+| 確認すること | 見逃すとどうなるか |
+|---|---|
+| anon キーの種別 | `service_role` を貼っていると RLS が完全に迂回される |
+| REST API への到達性 | URL 違い / プロジェクト停止 |
+| テーブル10件・ビュー4件 | `0001` の流し忘れ |
+| マスタの件数（筋群18・種目39・技能4・英語項目23） | `0002` の流し忘れ。ログインはできるが何も記録できない |
+| 全テーブルで RLS が有効か | 他人のデータが見える |
+| Email プロバイダが有効か | ログインリンクが届かない（画面にエラーは出ない） |
+
+**Redirect URLs だけは API から確認できない**ので、この診断の対象外です。手で確認してください
+（登録すべき値はスクリプトが出力します）。
 
 ### 3. Vercel へのデプロイ
 
@@ -90,6 +117,7 @@ npm run dev                  # http://localhost:3000
 npm run dev        # 開発サーバー
 npm run build      # 本番ビルド
 npm run test       # Vitest（負荷計算・筋肉痛・バランススコア）
+npm run check:setup # Supabase の設定を診断する
 npm run typecheck  # tsc --noEmit
 npm run lint       # ESLint
 ```
@@ -114,7 +142,8 @@ lib/
   english/balance.ts      バランススコア・週次達成率・おすすめ
 components/
   body-map/               人体図の SVG（左半身を定義して左右反転で全身にする）
-supabase/migrations/      スキーマ・RLS・ビュー・マスタ投入
+supabase/migrations/      スキーマ・RLS・ビュー・マスタ投入・診断用の関数
+scripts/check-setup.mjs   セットアップ診断（npm run check:setup）
 ```
 
 ## 設計上の判断
@@ -131,3 +160,8 @@ supabase/migrations/      スキーマ・RLS・ビュー・マスタ投入
 - **人体図は左半身だけを定義** — 描画時に `translate(200,0) scale(-1,1)` で反転させたコピーを
   重ねて全身にしています。パスが半分で済み、左右がずれません。
   筋群レイヤーは輪郭で `clipPath` しているので、肩や脇で色がはみ出しません。
+- **診断用の関数だけは `security definer`** — マスタの RLS は `to authenticated` なので、
+  anon キーでは件数を数えられず「シードが入ったか」を判定できません。かといって診断のために
+  `service_role` キーを手元に置かせるのは権限が強すぎるため、
+  `public.setup_status()` が**共通マスタの件数と RLS の有効/無効だけ**を返します。
+  個人のデータは 1 行も通らず、動的 SQL も使いません。

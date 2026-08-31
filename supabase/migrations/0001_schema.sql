@@ -6,6 +6,9 @@
 --   * マスタ（筋群・種目・英語項目）は user_id IS NULL を「共通マスタ」とし、
 --     全ユーザーが読めるが編集はできない。ユーザー独自の追加は user_id 付きで行う。
 --   * 負荷（volume）の一次計算はビューに集約し、アプリ側と二重実装しない。
+--   * 手で SQL エディタに貼って流す運用なので、何度実行しても通るようにする。
+--     Postgres に create policy if not exists は無いため、各ポリシーは
+--     drop policy if exists を前置きして書き直している。
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -272,30 +275,40 @@ alter table public.english_logs       enable row level security;
 alter table public.english_goals      enable row level security;
 
 -- 参照のみの共通マスタ
+drop policy if exists muscles_select on public.muscles;
 create policy muscles_select on public.muscles
   for select to authenticated using (true);
+drop policy if exists english_skills_select on public.english_skills;
 create policy english_skills_select on public.english_skills
   for select to authenticated using (true);
 
 -- プロフィールは本人のみ
+drop policy if exists profiles_select on public.profiles;
 create policy profiles_select on public.profiles
   for select to authenticated using (auth.uid() = id);
+drop policy if exists profiles_insert on public.profiles;
 create policy profiles_insert on public.profiles
   for insert to authenticated with check (auth.uid() = id);
+drop policy if exists profiles_update on public.profiles;
 create policy profiles_update on public.profiles
   for update to authenticated using (auth.uid() = id) with check (auth.uid() = id);
 
 -- 種目: 共通マスタ + 自分の追加分を読める。書き込みは自分の分だけ。
+drop policy if exists exercises_select on public.exercises;
 create policy exercises_select on public.exercises
   for select to authenticated using (user_id is null or user_id = auth.uid());
+drop policy if exists exercises_insert on public.exercises;
 create policy exercises_insert on public.exercises
   for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists exercises_update on public.exercises;
 create policy exercises_update on public.exercises
   for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists exercises_delete on public.exercises;
 create policy exercises_delete on public.exercises
   for delete to authenticated using (user_id = auth.uid());
 
 -- 種目↔筋群: 親の種目の可視性に従う
+drop policy if exists exercise_muscles_select on public.exercise_muscles;
 create policy exercise_muscles_select on public.exercise_muscles
   for select to authenticated using (
     exists (
@@ -303,6 +316,7 @@ create policy exercise_muscles_select on public.exercise_muscles
       where e.id = exercise_id and (e.user_id is null or e.user_id = auth.uid())
     )
   );
+drop policy if exists exercise_muscles_write on public.exercise_muscles;
 create policy exercise_muscles_write on public.exercise_muscles
   for all to authenticated
   using (
@@ -313,10 +327,12 @@ create policy exercise_muscles_write on public.exercise_muscles
   );
 
 -- 筋トレ記録は本人のみ
+drop policy if exists workout_sessions_all on public.workout_sessions;
 create policy workout_sessions_all on public.workout_sessions
   for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- セットは親セッションの所有者で判定する
+drop policy if exists workout_sets_all on public.workout_sets;
 create policy workout_sets_all on public.workout_sets
   for all to authenticated
   using (
@@ -327,17 +343,23 @@ create policy workout_sets_all on public.workout_sets
   );
 
 -- 英語項目: 共通マスタ + 自分の追加分
+drop policy if exists english_activities_select on public.english_activities;
 create policy english_activities_select on public.english_activities
   for select to authenticated using (user_id is null or user_id = auth.uid());
+drop policy if exists english_activities_insert on public.english_activities;
 create policy english_activities_insert on public.english_activities
   for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists english_activities_update on public.english_activities;
 create policy english_activities_update on public.english_activities
   for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists english_activities_delete on public.english_activities;
 create policy english_activities_delete on public.english_activities
   for delete to authenticated using (user_id = auth.uid());
 
+drop policy if exists english_logs_all on public.english_logs;
 create policy english_logs_all on public.english_logs
   for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists english_goals_all on public.english_goals;
 create policy english_goals_all on public.english_goals
   for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
