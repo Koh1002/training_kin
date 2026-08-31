@@ -1,8 +1,14 @@
+import { describeCallbackError } from '@/lib/auth-errors'
 import { LoginForm } from './login-form'
 
 export default async function LoginPage(props: PageProps<'/login'>) {
   const params = await props.searchParams
   const next = typeof params.next === 'string' ? params.next : undefined
+  // マジックリンクから戻って失敗したときの理由。出さないと「また同じ画面に
+  // 戻された」としか見えず、原因にたどり着けない。
+  const callbackError = describeCallbackError(
+    typeof params.error === 'string' ? params.error : undefined,
+  )
 
   return (
     <main
@@ -19,7 +25,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
           メールアドレスにログイン用のリンクを送ります。
         </p>
       </header>
-      <LoginForm next={next} />
+      <LoginForm next={next} callbackError={callbackError} />
     </main>
   )
 }

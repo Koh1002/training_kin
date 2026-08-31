@@ -24,7 +24,8 @@ export type ParsedMagicLink =
   | { kind: 'token'; tokenHash: string; type: MagicLinkOtpType }
   | { kind: 'code'; code: string }
 
-function isOtpType(value: string): value is MagicLinkOtpType {
+/** verifyOtp に渡してよい type か。判定を 2 箇所に書くと片方だけ緩むので共有する。 */
+export function isOtpType(value: string): value is MagicLinkOtpType {
   return (OTP_TYPES as readonly string[]).includes(value)
 }
 

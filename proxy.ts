@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { authCallbackParams } from '@/lib/auth-callback-params'
 import { missingSupabaseEnv } from '@/lib/supabase/env'
 
 /**
@@ -52,6 +53,21 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
+
+  // ログイン用の値が /auth/callback 以外に着地したら、そこへ回す。
+  // Supabase は戻り先が Redirect URLs に一致しないと Site URL に差し替えるので、
+  // コードがサイトのルートに落ちることがある。以前はそれを /login に飛ばして
+  // 捨てていた（URL にコードは残っているのに、見る場所が無かった）。
+  // どこに落ちても拾えば、設定と戻り先がずれても症状が出ない。
+  if (pathname !== '/auth/callback') {
+    const callbackParams = authCallbackParams(request.nextUrl.searchParams)
+    if (callbackParams) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/callback'
+      return NextResponse.redirect(url)
+    }
+  }
+
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
   if (!user && !isPublic) {
