@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { safeDestination } from '@/lib/safe-redirect'
 import { createClient } from '@/lib/supabase/server'
 
 /**
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get('next')
 
   // オープンリダイレクトを防ぐため、自サイト内の絶対パスだけを受け付ける
-  const destination = next && next.startsWith('/') && !next.startsWith('//') ? next : '/workout'
+  const destination = safeDestination(next)
 
   if (!code) {
     return NextResponse.redirect(new URL('/login?error=missing_code', origin))

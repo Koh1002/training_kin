@@ -24,6 +24,15 @@
   部位をタップすると、その部位に効いた種目と負荷の内訳が出ます。
 - **休養日** — 1タップで「オフ」を記録。理由（出張・二日酔いなど）も残せます。
 
+### 🔑 ログイン
+
+パスワードは持ちません。メールアドレスを入れると、**マジックリンクと 6 桁のコードが入った
+メールが 1 通**届き、どちらでもログインできます。
+
+コードを用意しているのは、メールクライアントが長い URL を折り返すとリンクが途中で切れて
+開けなくなることがあるためです。スマホでは通知のプレビューからコードを読んで入力する方が
+速く、メールアプリとブラウザを行き来せずに済みます。
+
 ### 📖 英語
 
 - Reading / Listening / Speaking / Writing の4技能 × 23項目から選び、**分数だけ**を記録します。
@@ -64,9 +73,19 @@ soreness(筋群, 日) = clamp01( Σ  その日の筋群負荷 / 基準値 × カ
    3つとも**何度実行しても壊れません**。途中で失敗したら、直してから頭から流し直して構いません。
 3. Authentication > Providers で **Email** を有効にする（マジックリンクを使うので
    「Confirm email」は有効のままでよい）。
-4. Authentication > URL Configuration の **Redirect URLs** に
-   `http://localhost:3000/auth/callback` と本番の `https://<your-app>.vercel.app/auth/callback`
-   を追加する。
+4. Authentication > URL Configuration を設定する。**2 つあるので両方**触ること。
+   - **Site URL** — 本番の URL（`https://<your-app>.vercel.app`）。
+     既定の `http://localhost:3000` のままだと、許可されていない戻り先を要求したときに
+     ここへフォールバックし、スマホから開いて「サーバが見つかりません」になる。
+   - **Redirect URLs** — `http://localhost:3000/auth/callback` と
+     本番の `https://<your-app>.vercel.app/auth/callback` を追加する。
+5. Authentication > Email Templates > **Magic Link** に `{{ .Token }}` を足す。
+   既定のテンプレートはリンクだけで、**これを足さないと 6 桁コードが届かない**。
+   本文の最後にこんな行を足せばよい:
+
+   ```html
+   <p>または、次のコードを入力してください: <strong>{{ .Token }}</strong></p>
+   ```
 
 ### 2. ローカル開発
 
