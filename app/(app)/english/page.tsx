@@ -1,3 +1,5 @@
+import { X } from 'lucide-react'
+import { IconButton } from '@/components/ui/button'
 import { redirect } from 'next/navigation'
 import { Card, CardTitle, EmptyState } from '@/components/ui/card'
 import { DateNav } from '@/components/date-nav'
@@ -84,7 +86,7 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
             {progress.map((p) => (
               <li key={p.skill} className="flex items-center gap-2 text-sm">
                 <span className="w-20 shrink-0 text-muted">{SKILL_LABELS[p.skill]}</span>
-                <span className="h-2 flex-1 overflow-hidden rounded-full bg-surface-muted">
+                <span className="h-2 flex-1 overflow-hidden rounded-full bg-border">
                   <span
                     className="block h-full rounded-full bg-english"
                     style={{ width: `${Math.min(100, p.ratio * 100)}%` }}
@@ -99,7 +101,7 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
 
           <p className="mt-3 text-xs text-muted">
             今週の合計 {formatMinutes(weekTotal)}
-            {streak > 0 ? ` ・ ${streak}日連続で学習中 🔥` : ''}
+            {streak > 0 ? ` ・ ${streak}日連続` : ''}
           </p>
         </Card>
 
@@ -113,7 +115,7 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
             {suggestions.map((a) => (
               <li
                 key={a.id}
-                className="rounded-lg border border-english/40 bg-english/5 px-2.5 py-1.5 text-[13px]"
+                className="rounded-app border border-english/40 bg-english/5 px-2.5 py-1.5 text-[13px]"
               >
                 {a.name_ja}
               </li>
@@ -143,13 +145,9 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
                   <span className="tabular shrink-0 text-sm text-muted">{log.minutes}分</span>
                   <form action={deleteEnglishLog}>
                     <input type="hidden" name="logId" value={log.id} />
-                    <button
-                      type="submit"
-                      aria-label={`${log.english_activities?.name_ja ?? ''}の記録を削除`}
-                      className="px-1 text-muted"
-                    >
-                      ✕
-                    </button>
+                    <IconButton type="submit" size="sm" aria-label={`${log.english_activities?.name_ja ?? ''}の記録を削除`}>
+                        <X size={15} aria-hidden />
+                      </IconButton>
                   </form>
                 </li>
               ))}

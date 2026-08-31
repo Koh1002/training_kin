@@ -62,7 +62,7 @@ export default async function EnglishHistoryPage() {
               return (
                 <li key={code} className="flex items-center gap-2 text-sm">
                   <span className="w-20 shrink-0 text-muted">{SKILL_LABELS[code]}</span>
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-surface-muted">
+                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-border">
                     <span
                       className="block h-full rounded-full bg-english"
                       style={{ width: `${share * 100}%` }}
@@ -119,7 +119,7 @@ export default async function EnglishHistoryPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-surface-muted px-3 py-2">
+    <div className="rounded-app bg-surface-muted px-3 py-2">
       <dt className="text-xs text-muted">{label}</dt>
       <dd className="tabular font-semibold">{value}</dd>
     </div>

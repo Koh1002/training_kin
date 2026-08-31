@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   sendMagicLink,
   verifyOtpCode,
@@ -34,10 +35,10 @@ export function LoginForm({ next }: { next?: string }) {
       <div className="space-y-4">
         <p
           role="status"
-          className={`rounded-lg px-3 py-2 text-sm ${
+          className={`rounded-app border px-3 py-2 text-sm ${
             sendState.tone === 'warning'
-              ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
-              : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+              ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+              : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
           }`}
         >
           {sendState.message}
@@ -62,25 +63,21 @@ export function LoginForm({ next }: { next?: string }) {
               required
               autoFocus
               placeholder="123456"
-              className="field tabular text-center text-2xl tracking-[0.4em]"
+              className="field tabular h-14 text-center text-2xl tracking-[0.4em]"
             />
             <p className="text-xs text-muted">
               メールのリンクを開いてもログインできます。うまく開けないときはこちらを使ってください。
             </p>
           </div>
 
-          <button
-            type="submit"
-            disabled={verifying}
-            className="w-full rounded-xl bg-foreground px-4 py-3 font-semibold text-background transition disabled:opacity-50"
-          >
+          <Button type="submit" variant="primary" size="lg" full disabled={verifying}>
             {verifying ? '確認中…' : 'ログイン'}
-          </button>
+          </Button>
 
           {verifyState.message ? (
             <p
               role="alert"
-              className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+              className="rounded-app border border-red-500/30 border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
             >
               {verifyState.message}
             </p>
@@ -119,18 +116,14 @@ export function LoginForm({ next }: { next?: string }) {
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={sending}
-        className="w-full rounded-xl bg-foreground px-4 py-3 font-semibold text-background transition disabled:opacity-50"
-      >
+      <Button type="submit" variant="primary" size="lg" full disabled={sending}>
         {sending ? '送信中…' : 'ログイン用のメールを送る'}
-      </button>
+      </Button>
 
       {sendState.status === 'error' && sendState.message ? (
         <p
           role="alert"
-          className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+          className="rounded-app border border-red-500/30 border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
         >
           {sendState.message}
         </p>

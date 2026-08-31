@@ -10,7 +10,10 @@ export function SubNav({ items, accent }: { items: Item[]; accent: string }) {
   const pathname = usePathname()
 
   return (
-    <nav className="mb-4 flex gap-1.5 overflow-x-auto pb-0.5" aria-label="ページ内ナビゲーション">
+    <nav
+      className="mb-4 flex gap-1 rounded-app-lg border border-border bg-surface-muted p-1"
+      aria-label="ページ内ナビゲーション"
+    >
       {items.map((item) => {
         const active = pathname === item.href
         return (
@@ -18,11 +21,11 @@ export function SubNav({ items, accent }: { items: Item[]; accent: string }) {
             key={item.href}
             href={item.href}
             aria-current={active ? 'page' : undefined}
-            className="shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition"
+            className="flex-1 rounded-app px-3 py-1.5 text-center text-[13px] font-medium transition"
             style={
               active
-                ? { background: accent, borderColor: accent, color: '#fff' }
-                : { borderColor: 'var(--border)', color: 'var(--muted)' }
+                ? { background: 'var(--surface)', color: accent, boxShadow: '0 1px 2px rgb(0 0 0 / 0.06)' }
+                : { color: 'var(--muted)' }
             }
           >
             {item.label}

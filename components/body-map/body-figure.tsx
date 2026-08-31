@@ -77,8 +77,8 @@ export function BodyFigure({ side, mode, values, selected, onSelect }: Props) {
         {/* 土台となる身体のシルエット。頭部は左右対称なので 1 つだけ描く。 */}
         <ellipse
           {...HEAD}
-          fill="var(--color-surface-muted)"
-          stroke="var(--color-border)"
+          fill="var(--body-fill)"
+          stroke="var(--body-stroke)"
           strokeWidth={1}
         />
         {bothHalves((mirrored) => (
@@ -87,7 +87,7 @@ export function BodyFigure({ side, mode, values, selected, onSelect }: Props) {
               <path
                 key={i}
                 d={s.d}
-                fill="var(--color-surface-muted)"
+                fill="var(--body-fill)"
                 stroke="var(--color-border)"
                 strokeWidth={1}
               />
@@ -108,7 +108,7 @@ export function BodyFigure({ side, mode, values, selected, onSelect }: Props) {
                     d={part.d}
                     data-muscle={part.muscle}
                     fill={intensityColor(mode, value)}
-                    stroke={isSelected ? 'var(--color-foreground)' : 'var(--color-border)'}
+                    stroke={isSelected ? 'var(--color-foreground)' : 'var(--body-stroke)'}
                     strokeWidth={isSelected ? 3 : 0.8}
                     className={onSelect ? 'cursor-pointer' : undefined}
                     onClick={onSelect ? () => onSelect(part.muscle) : undefined}

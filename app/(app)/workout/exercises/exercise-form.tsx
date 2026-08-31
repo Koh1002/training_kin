@@ -94,7 +94,7 @@ export function ExerciseForm() {
           {MUSCLES.map((m) => (
             <label
               key={m.code}
-              className="cursor-pointer rounded-lg border border-border px-2 py-1 text-[13px] has-checked:border-workout has-checked:bg-workout has-checked:text-white"
+              className="cursor-pointer rounded-app border border-border px-2 py-1 text-[13px] has-checked:border-workout has-checked:bg-workout has-checked:text-white"
             >
               <input type="checkbox" name="muscles" value={m.code} className="sr-only" />
               {m.nameJa}
@@ -106,7 +106,7 @@ export function ExerciseForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-workout px-4 py-2.5 font-semibold text-white disabled:opacity-50"
+        className="w-full rounded-app-lg bg-workout px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
       >
         {pending ? '追加中…' : '種目を追加'}
       </button>

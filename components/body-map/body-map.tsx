@@ -42,7 +42,7 @@ export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle 
   return (
     <div className="space-y-3">
       {showModeToggle && onModeChange ? (
-        <div role="tablist" aria-label="表示モード" className="flex gap-1 rounded-xl bg-surface-muted p-1">
+        <div role="tablist" aria-label="表示モード" className="flex gap-1 rounded-app-lg bg-surface-muted p-1">
           {(['stimulus', 'soreness'] as MapMode[]).map((m) => (
             <button
               key={m}
@@ -50,7 +50,7 @@ export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle 
               role="tab"
               aria-selected={mode === m}
               onClick={() => onModeChange(m)}
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              className={`flex-1 rounded-app px-3 py-2 text-sm font-medium transition ${
                 mode === m ? 'bg-surface shadow-sm' : 'text-muted'
               }`}
             >
@@ -76,7 +76,7 @@ export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle 
       </div>
 
       {selected ? (
-        <div className="rounded-xl border border-border bg-surface-muted p-3 text-sm">
+        <div className="rounded-app-lg border border-border bg-surface-muted p-3 text-sm">
           <div className="flex items-baseline justify-between gap-2">
             <strong>{muscleName(selected)}</strong>
             <span className="tabular text-muted">
