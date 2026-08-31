@@ -106,7 +106,11 @@ Supabase に接続して、次を順に確認します。問題があれば、�
 2. 環境変数を設定する。
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_SITE_URL`（例 `https://your-app.vercel.app`。マジックリンクの戻り先に使う）
+   - `SITE_URL`（例 `https://your-app.vercel.app`。マジックリンクの戻り先に使う）
+
+   `SITE_URL` に `NEXT_PUBLIC_` は付けません。この値は Server Action の中でしか読まないため、
+   付けると Vercel に「ブラウザへ露出する」と警告されます。未設定でもリクエストのホストから
+   組み立てて動きますが、本番では宛先を推測に頼らないよう設定しておくことを勧めます。
 3. デプロイ後、その URL を Supabase の Redirect URLs にも追加する。
 
 `service_role` キーはアプリからは使いません。すべてのアクセスは anon key + RLS を通ります。

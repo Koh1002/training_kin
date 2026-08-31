@@ -25,9 +25,14 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
     return { status: 'error', message: parsed.error.issues[0]?.message ?? '入力を確認してください' }
   }
 
+  // マジックリンクの戻り先。SITE_URL に NEXT_PUBLIC_ を付けていないのは、
+  // ここが Server Action の中だけで読まれ、ブラウザでは一度も評価されないため。
+  // 未設定のときはリクエストのホストから組み立てる（ローカル開発とプレビュー用）。
+  // 本番では固定しておく方が素直。ホストヘッダは呼び出し側から差し込める値で、
+  // 実害は Supabase の Redirect URLs 許可リストが止めるとはいえ、宛先を推測に頼らずに済む。
   const headerList = await headers()
   const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.SITE_URL ??
     `https://${headerList.get('x-forwarded-host') ?? headerList.get('host')}`
 
   const redirectTo = new URL('/auth/callback', origin)
