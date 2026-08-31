@@ -18,7 +18,7 @@ export default async function ActivitiesPage() {
 
   return (
     <>
-      <SubNav items={ENGLISH_NAV} accent="var(--accent-english)" />
+      <SubNav items={ENGLISH_NAV} />
 
       <div className="space-y-4">
         <Card>

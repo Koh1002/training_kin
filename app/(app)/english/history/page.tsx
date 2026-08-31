@@ -35,7 +35,7 @@ export default async function EnglishHistoryPage() {
 
   return (
     <>
-      <SubNav items={ENGLISH_NAV} accent="var(--accent-english)" />
+      <SubNav items={ENGLISH_NAV} />
 
       <div className="space-y-4">
         <Card>
@@ -49,7 +49,12 @@ export default async function EnglishHistoryPage() {
             <Stat label="合計" value={formatMinutes(grandTotal)} />
             <Stat label="学習した日" value={`${studiedDays} 日`} />
             <Stat label="連続日数" value={`${streak} 日`} />
-            <Stat label="バランス" value={`${balanceScore(totals)} / 100`} />
+            <Stat
+              label="バランス"
+              value={
+                grandTotal > 0 ? `${balanceScore(totals)} / 100` : "— / 100"
+              }
+            />
           </dl>
         </Card>
 
@@ -64,7 +69,7 @@ export default async function EnglishHistoryPage() {
                   <span className="w-20 shrink-0 text-muted">{SKILL_LABELS[code]}</span>
                   <span className="h-2 flex-1 overflow-hidden rounded-full bg-border">
                     <span
-                      className="block h-full rounded-full bg-english"
+                      className="block h-full rounded-full bg-accent"
                       style={{ width: `${share * 100}%` }}
                     />
                   </span>

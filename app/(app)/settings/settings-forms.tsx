@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { SKILL_CODES, SKILL_LABELS, SKILL_LABELS_JA } from '@/lib/english/balance'
 import { SORENESS_CURVE_LABELS, type SorenessCurveKey } from '@/lib/workout/soreness'
 import type { SkillCode } from '@/types/database'
+import { Button } from '@/components/ui/button'
 import { updateGoals, updateProfile, type ActionState } from './actions'
 
 const initial: ActionState = { ok: false }
@@ -109,13 +110,9 @@ export function GoalsForm({ goals }: { goals: Partial<Record<SkillCode, number>>
       <p className="text-xs text-muted">
         1週間あたりの目標分数です。レーダーの外周がこの値になります。
       </p>
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-app-lg bg-english px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <Button type="submit" variant="primary" size="lg" full disabled={pending}>
         {pending ? '保存中…' : '週の目標を保存'}
-      </button>
+      </Button>
       <Status state={state} />
     </form>
   )

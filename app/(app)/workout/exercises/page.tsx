@@ -40,7 +40,7 @@ export default async function ExercisesPage() {
 
   return (
     <>
-      <SubNav items={WORKOUT_NAV} accent="var(--accent-workout)" />
+      <SubNav items={WORKOUT_NAV} />
 
       <div className="space-y-4">
         <Card>

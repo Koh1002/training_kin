@@ -37,7 +37,7 @@ export function VolumeChart({ data }: { data: VolumePoint[] }) {
             }}
             formatter={(value) => [formatVolume(Number(value ?? 0)), '総負荷']}
           />
-          <Bar dataKey="volumeKg" fill="var(--color-workout)" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="volumeKg" fill="var(--color-data-ink)" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

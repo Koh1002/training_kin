@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { SKILL_CODES, SKILL_LABELS, SKILL_LABELS_JA } from '@/lib/english/balance'
+import { Button } from '@/components/ui/button'
 import { createActivity, type ActionState } from './actions'
 
 const initialState: ActionState = { ok: false }
@@ -32,13 +33,9 @@ export function ActivityForm() {
         <input name="description" maxLength={120} className="field" placeholder="どんな取り組みか" />
       </label>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-app-lg bg-english px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <Button type="submit" variant="primary" size="lg" full disabled={pending}>
         {pending ? '追加中…' : '項目を追加'}
-      </button>
+      </Button>
 
       {state.message ? (
         <p

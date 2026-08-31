@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'accent'
+type Variant = 'primary' | 'secondary' | 'ghost'
 type Size = 'sm' | 'md' | 'lg'
 
 const VARIANTS: Record<Variant, string> = {
@@ -9,8 +9,6 @@ const VARIANTS: Record<Variant, string> = {
   // 枠線だけの控えめな操作
   secondary: 'border border-border bg-surface hover:border-border-strong',
   ghost: 'hover:bg-surface-muted',
-  // タブの色を使う操作。accentColor で色を渡す
-  accent: 'text-white hover:opacity-90',
 }
 
 const SIZES: Record<Size, string> = {
@@ -22,8 +20,6 @@ const SIZES: Record<Size, string> = {
 type Props = ComponentProps<'button'> & {
   variant?: Variant
   size?: Size
-  /** variant="accent" のときの背景色。CSS 変数を渡す */
-  accentColor?: string
   full?: boolean
 }
 
@@ -31,10 +27,8 @@ type Props = ComponentProps<'button'> & {
 export function Button({
   variant = 'secondary',
   size = 'md',
-  accentColor,
   full = false,
   className = '',
-  style,
   ...rest
 }: Props) {
   return (
@@ -42,7 +36,6 @@ export function Button({
       className={`inline-flex items-center justify-center rounded-app font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 ${
         VARIANTS[variant]
       } ${SIZES[size]} ${full ? 'w-full' : ''} ${className}`}
-      style={variant === 'accent' && accentColor ? { background: accentColor, ...style } : style}
       {...rest}
     />
   )

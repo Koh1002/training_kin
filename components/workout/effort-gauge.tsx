@@ -9,56 +9,48 @@ type Props = {
 }
 
 /**
- * その日の頑張りを表す円弧ゲージ。
- * 直近の自己ベストを 100 とした相対値なので、
- * 続けるほど基準が上がっていく（= 昨日の自分と比べられる）。
+ * その日の頑張り。
+ *
+ * 主役は総負荷（kg）で、その下に直近 30 日と比べた相対値を細い帯で添える。
+ * 以前は大きな円弧を左に置いていたが、記録が無い日は空の弧だけが残って
+ * 壊れているように見えたうえ、数字より弧の方が目立っていた。
+ * 比較できる記録が無い日はそもそも帯を出さない。
  */
 export function EffortGauge({ volumeKg, score, setCount, cardioMinutes }: Props) {
-  const radius = 52
-  const circumference = Math.PI * radius // 半円ぶんの弧長
-  const ratio = (score ?? 0) / 100
-
   return (
-    <div className="flex items-center gap-4">
-      <div className="relative shrink-0">
-        <svg viewBox="0 0 130 74" className="w-[130px]" role="img" aria-label={`今日の頑張り ${score ?? 0}%`}>
-          <path
-            d={`M 13 65 A ${radius} ${radius} 0 0 1 117 65`}
-            fill="none"
-            stroke="var(--color-surface-muted)"
-            strokeWidth={12}
-            strokeLinecap="round"
-          />
-          <path
-            d={`M 13 65 A ${radius} ${radius} 0 0 1 117 65`}
-            fill="none"
-            stroke="var(--color-workout)"
-            strokeWidth={12}
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - ratio)}
-          />
-        </svg>
-        <div className="absolute inset-x-0 bottom-0 text-center">
-          <span className="tabular text-2xl font-bold">{score ?? '—'}</span>
-          <span className="text-xs text-muted">{score === null ? '' : '%'}</span>
-        </div>
-      </div>
-
-      <div className="min-w-0 space-y-0.5">
-        <p className="tabular text-2xl font-bold">{formatVolume(volumeKg)}</p>
-        <p className="text-sm text-muted">
+    <div className="space-y-3">
+      <div className="flex items-baseline gap-2">
+        <span className="tabular text-[2rem] leading-none font-semibold">
+          {formatVolume(volumeKg)}
+        </span>
+        <span className="text-sm text-muted">
           {setCount} 種目
           {cardioMinutes > 0 ? ` ・ 有酸素 ${cardioMinutes}分` : ''}
-        </p>
-        <p className="text-xs text-muted">
-          {score === null
-            ? 'まだ比較できる記録がありません'
-            : score >= 100
-              ? '直近30日で最高の総負荷です'
-              : '直近30日の最高記録を100とした相対値'}
-        </p>
+        </span>
       </div>
+
+      {score === null ? (
+        <p className="text-xs text-muted">
+          数日ぶんたまると、直近30日と比べた位置が出ます
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          <div
+            className="h-1.5 w-full overflow-hidden rounded-full bg-data-track"
+            role="img"
+            aria-label={`直近30日の最高記録に対して ${score}%`}
+          >
+            <span
+              className="block h-full rounded-full bg-data-ink transition-[width] duration-300"
+              style={{ width: `${Math.min(score, 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted">
+            直近30日の最高を 100 として <span className="tabular text-foreground">{score}</span>
+            {score >= 100 ? '（最高記録）' : ''}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

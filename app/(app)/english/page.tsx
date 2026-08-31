@@ -63,7 +63,7 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
 
   return (
     <>
-      <SubNav items={ENGLISH_NAV} accent="var(--accent-english)" />
+      <SubNav items={ENGLISH_NAV} />
       <DateNav date={date} basePath="/english" />
 
       <div className="space-y-4">
@@ -73,13 +73,19 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
           </CardTitle>
           <SkillRadar progress={progress} />
 
-          <div className="mt-1 flex items-baseline justify-between gap-2">
-            <p className="text-sm">
-              <span className="text-muted">バランススコア </span>
-              <strong className="tabular text-lg">{score}</strong>
-              <span className="text-muted"> / 100</span>
-            </p>
-            <p className="text-xs text-muted">{balanceComment(score)}</p>
+          {/*
+            数字を文の途中に置くと、等幅書体の 0 が前後の文字から浮いて誤植のように
+            見えていた。ラベルを上に出して、数字だけを独立させる。
+          */}
+          <div className="mt-1 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs text-muted">バランススコア</p>
+              <p className="tabular text-xl leading-tight font-semibold">
+                {weekTotal > 0 ? score : '—'}
+                <span className="text-sm font-normal text-muted"> / 100</span>
+              </p>
+            </div>
+            <p className="pb-1 text-xs text-muted">{balanceComment(score, weekTotal)}</p>
           </div>
 
           <ul className="mt-3 space-y-1.5">
@@ -88,7 +94,7 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
                 <span className="w-20 shrink-0 text-muted">{SKILL_LABELS[p.skill]}</span>
                 <span className="h-2 flex-1 overflow-hidden rounded-full bg-border">
                   <span
-                    className="block h-full rounded-full bg-english"
+                    className="block h-full rounded-full bg-accent"
                     style={{ width: `${Math.min(100, p.ratio * 100)}%` }}
                   />
                 </span>
@@ -108,14 +114,14 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
         <Card>
           <CardTitle>次におすすめ</CardTitle>
           <p className="mb-2 text-sm">
-            <strong className="text-english">{SKILL_LABELS[focus]}</strong>
+            <strong className="text-foreground">{SKILL_LABELS[focus]}</strong>
             <span className="text-muted"> が今週いちばん遅れています。</span>
           </p>
           <ul className="flex flex-wrap gap-1.5">
             {suggestions.map((a) => (
               <li
                 key={a.id}
-                className="rounded-app border border-english/40 bg-english/5 px-2.5 py-1.5 text-[13px]"
+                className="rounded-app border border-accent/40 bg-accent/5 px-2.5 py-1.5 text-[13px]"
               >
                 {a.name_ja}
               </li>

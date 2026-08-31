@@ -93,7 +93,7 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
 
   return (
     <>
-      <SubNav items={WORKOUT_NAV} accent="var(--accent-workout)" />
+      <SubNav items={WORKOUT_NAV} />
       <DateNav date={date} basePath="/workout" />
 
       <div className="space-y-4">
@@ -144,21 +144,29 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
               </form>
             </div>
           ) : sets.length === 0 ? (
-            <div className="space-y-3">
+            <div>
               <EmptyState>まだ記録がありません。下から種目を追加してください。</EmptyState>
-              <form action={markRestDay} className="flex items-center gap-2">
-                <input type="hidden" name="date" value={date} />
-                <input
-                  name="reason"
-                  placeholder="理由（任意）"
-                  className="field flex-1 py-2 text-sm"
-                  maxLength={100}
-                />
-                <Button type="submit" variant="secondary" size="md" className="shrink-0 text-muted">
-                  <Moon size={15} aria-hidden />
-                  オフにする
-                </Button>
-              </form>
+              {/*
+                休養日の登録。見出しを付けずに空の状態のすぐ下に置いていたときは、
+                入力欄が何のためのものか分からなかった。区切り線と小見出しで、
+                記録一覧とは別の操作であることを示す。
+              */}
+              <div className="mt-1 border-t border-border pt-3">
+                <p className="mb-2 text-xs text-muted">意図的に休んだ日として残す</p>
+                <form action={markRestDay} className="flex items-center gap-2">
+                  <input type="hidden" name="date" value={date} />
+                  <input
+                    name="reason"
+                    placeholder="理由（任意）"
+                    className="field flex-1 py-2 text-sm"
+                    maxLength={100}
+                  />
+                  <Button type="submit" variant="secondary" size="md" className="shrink-0 text-muted">
+                    <Moon size={15} aria-hidden />
+                    休養日
+                  </Button>
+                </form>
+              </div>
             </div>
           ) : (
             <ul className="divide-y divide-border">

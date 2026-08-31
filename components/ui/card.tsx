@@ -19,10 +19,13 @@ export function CardTitle({ children, right }: { children: React.ReactNode; righ
   )
 }
 
+/**
+ * 記録がまだ無いときの表示。
+ *
+ * 以前は破線で囲んでいたが、破線の枠は「ここに何かが入る予定の場所」に見えて、
+ * 作りかけの画面のような印象になっていた。枠を外して、余白と文字色だけで
+ * 空であることを示す。
+ */
 export function EmptyState({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="rounded-app border border-dashed border-border px-4 py-8 text-center text-sm text-muted">
-      {children}
-    </p>
-  )
+  return <p className="px-4 py-7 text-center text-sm text-muted">{children}</p>
 }

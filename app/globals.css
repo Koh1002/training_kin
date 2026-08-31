@@ -3,9 +3,12 @@
 /*
  * デザイントークン。
  *
- * 中性的なグレーを土台にして、筋トレのオレンジと英語のインディゴは
- * 「いまどちらのタブにいるか」を示すアクセントとしてだけ使う。面で塗らない。
- * 装飾を減らして数字と人体図が主役になるようにしている。
+ * 色は 1 つに絞る。以前はタブごとに橙と藍を割り当てていたが、タブを切り替えるたびに
+ * 画面全体の色が変わり、2 つの別のアプリを行き来しているように見えていた。
+ * いまは操作系（選択中のタブ、主要なボタン、選んだ項目）をすべて前景色の一色で塗り、
+ * **色相は情報を持つところだけに残す**。具体的には人体図の濃淡（刺激は寒色、
+ * 筋肉痛は暖色）で、ここでは色そのものが量を表している。
+ * グラフの棒や進捗バーは順位付けではなく大小の比較なので、前景色の濃淡で足りる。
  */
 :root {
   /*
@@ -22,8 +25,12 @@
   --border-strong: oklch(15% 0 0 / 0.14);
   --foreground: oklch(15% 0 0);
   --muted: oklch(50% 0 0);
-  --accent-workout: oklch(58% 0.16 42);
-  --accent-english: oklch(52% 0.19 275);
+  /* 操作系の一色。面で塗るので、その上に載る文字色も対で持つ */
+  --accent: oklch(22% 0 0);
+  --accent-contrast: oklch(99% 0 0);
+  /* グラフの塗り。前景色そのものだと重いので少し引く */
+  --data-ink: oklch(22% 0 0 / 0.72);
+  --data-track: oklch(15% 0 0 / 0.08);
   /* フォーカスリングは前景色ではなく強めのボーダー色。刺さりすぎないように */
   --ring: oklch(15% 0 0 / 0.45);
 
@@ -50,8 +57,10 @@
     --border-strong: rgb(255 255 255 / 0.13);
     --foreground: oklch(96% 0 0);
     --muted: oklch(62% 0 0);
-    --accent-workout: oklch(75% 0.15 55);
-    --accent-english: oklch(78% 0.12 275);
+    --accent: oklch(93% 0 0);
+    --accent-contrast: oklch(17% 0 0);
+    --data-ink: oklch(93% 0 0 / 0.78);
+    --data-track: rgb(255 255 255 / 0.1);
     --ring: rgb(255 255 255 / 0.5);
 
     --body-fill: #242424;
@@ -68,8 +77,10 @@
   --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
-  --color-workout: var(--accent-workout);
-  --color-english: var(--accent-english);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-data-ink: var(--data-ink);
+  --color-data-track: var(--data-track);
   --color-ring: var(--ring);
   --color-body-fill: var(--body-fill);
   --color-body-stroke: var(--body-stroke);
@@ -128,6 +139,14 @@ h3 {
   border-radius: var(--radius-sm);
 }
 
+/*
+ * チェックボックスとラジオはブラウザ既定の青で描かれる。画面の他がすべて
+ * 無彩色なので、そこだけ青が残ると取り残されて見える。前景色に合わせる。
+ */
+:root {
+  accent-color: var(--accent);
+}
+
 /* 入力欄の共通スタイル */
 .field {
   width: 100%;
@@ -154,4 +173,19 @@ input.field,
 select.field,
 textarea.field {
   font-size: max(0.9375rem, 16px);
+}
+
+/*
+ * 横スクロールする列（種目のカテゴリなど）。端で切れているのか終わりなのかが
+ * 分からないと、隠れた項目に気付けない。右端をぼかして「まだ続く」ことを示す。
+ */
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent 100%);
+}
+
+.scroll-x::-webkit-scrollbar {
+  display: none;
 }

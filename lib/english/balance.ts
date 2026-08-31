@@ -53,7 +53,15 @@ export function balanceScore(minutes: SkillMinutes): number {
   return Math.round(Math.max(0, 1 - deviation / maxDeviation) * 100)
 }
 
-export function balanceComment(score: number): string {
+/**
+ * バランススコアの読み方を一言で添える。
+ *
+ * 合計時間も受け取るのは、記録が 1 件も無い週のスコアが 0 になり、
+ * 「特定の技能に偏っています」と出てしまっていたため。まだ何もしていない週に
+ * 偏りの指摘をするのは事実に反する。
+ */
+export function balanceComment(score: number, totalMinutes: number): string {
+  if (totalMinutes <= 0) return 'まだ今週の記録がありません'
   if (score >= 85) return '4技能がよく揃っています'
   if (score >= 65) return 'おおむねバランスが取れています'
   if (score >= 40) return '少し偏ってきました'
