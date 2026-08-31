@@ -20,7 +20,14 @@ const initialVerify: VerifyState = { status: 'idle' }
  * 長い URL を折り返すとリンクが途中で切れて開けなくなることがあるため。
  * スマホでは通知のプレビューからコードを読んで入力する方が速い。
  */
-export function LoginForm({ next }: { next?: string }) {
+export function LoginForm({
+  next,
+  /** マジックリンクから戻って失敗したときの理由。無ければ null。 */
+  callbackError,
+}: {
+  next?: string
+  callbackError?: string | null
+}) {
   const [sendState, sendAction, sending] = useActionState(sendMagicLink, initialSend)
   const [verifyState, verifyAction, verifying] = useActionState(verifyOtpCode, initialVerify)
   const [linkState, linkAction, verifyingLink] = useActionState(verifyMagicLinkUrl, initialVerify)
@@ -87,47 +94,12 @@ export function LoginForm({ next }: { next?: string }) {
           ) : null}
         </form>
 
-        {/*
-          リンクを貼り付けて入る道。
-          リンクの戻り先が壊れていると開いても何も起きないが、リンク自体には
-          token が入っているので、戻り先を経由せずここで検証すれば入れる。
-          Supabase はメールテンプレートの編集を独自 SMTP の設定とセットにしているため、
-          SMTP を用意できない環境では本文にコードが載らない。そこでの唯一の道になる。
-        */}
-        <div className="space-y-3 border-t border-border pt-4">
-          <div>
-            <h2 className="text-sm font-medium">コードが本文に無いとき</h2>
-            <p className="mt-1 text-xs text-muted">
-              メールのボタンを長押し（PC なら右クリック）してリンクのアドレスをコピーし、
-              ここに貼り付けてください。リンクを開いても何も起きない場合でも入れます。
-            </p>
-          </div>
-
-          <form action={linkAction} className="space-y-3">
-            {next ? <input type="hidden" name="next" value={next} /> : null}
-            <input
-              name="url"
-              type="url"
-              required
-              inputMode="url"
-              autoComplete="off"
-              placeholder="https://….supabase.co/auth/v1/verify?token=…"
-              className="field text-[13px]"
-            />
-            <Button type="submit" variant="secondary" size="lg" full disabled={verifyingLink}>
-              {verifyingLink ? '確認中…' : 'リンクでログイン'}
-            </Button>
-
-            {linkState.message ? (
-              <p
-                role="alert"
-                className="rounded-app border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
-              >
-                {linkState.message}
-              </p>
-            ) : null}
-          </form>
-        </div>
+        <PasteLink
+          next={next}
+          action={linkAction}
+          pending={verifyingLink}
+          message={linkState.message}
+        />
 
         <button
           type="button"
@@ -140,9 +112,18 @@ export function LoginForm({ next }: { next?: string }) {
     )
   }
 
-  return (
+  const emailStep = (
     <form action={sendAction} className="space-y-4">
       {next ? <input type="hidden" name="next" value={next} /> : null}
+
+      {callbackError ? (
+        <p
+          role="alert"
+          className="rounded-app border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+        >
+          {callbackError}
+        </p>
+      ) : null}
 
       <div className="space-y-1.5">
         <label htmlFor="email" className="text-sm font-medium">
@@ -174,5 +155,81 @@ export function LoginForm({ next }: { next?: string }) {
         </p>
       ) : null}
     </form>
+  )
+
+  // リンクから戻って失敗したときは、手元にリンクがある。送り直させると
+  // 送信上限を 1 通ぶん無駄に使うので、その場で貼り付けられるようにする。
+  if (!callbackError) return emailStep
+
+  return (
+    <div className="space-y-4">
+      {emailStep}
+      <PasteLink
+        next={next}
+        action={linkAction}
+        pending={verifyingLink}
+        message={linkState.message}
+      />
+    </div>
+  )
+}
+
+/**
+ * リンクを貼り付けて入る道。
+ *
+ * リンクの戻り先が壊れていると開いても何も起きないが、リンク自体には token が
+ * 入っているので、戻り先を経由せずここで検証すれば入れる。Supabase はメール
+ * テンプレートの編集を独自 SMTP の設定とセットにしているため、SMTP を用意できない
+ * 環境では本文にコードが載らない。そこでの唯一の道になる。
+ *
+ * ログインの途中の値（PKCE の検証用）を使わないので、**メールを送ったブラウザと
+ * 違うブラウザで開いてしまった場合でも通る**。
+ */
+function PasteLink({
+  next,
+  action,
+  pending,
+  message,
+}: {
+  next?: string
+  action: (formData: FormData) => void
+  pending: boolean
+  message?: string
+}) {
+  return (
+    <div className="space-y-3 border-t border-border pt-4">
+      <div>
+        <h2 className="text-sm font-medium">コードが本文に無いとき</h2>
+        <p className="mt-1 text-xs text-muted">
+          メールのボタンを長押し（PC なら右クリック）してリンクのアドレスをコピーし、
+          ここに貼り付けてください。リンクを開いても何も起きない場合でも入れます。
+        </p>
+      </div>
+
+      <form action={action} className="space-y-3">
+        {next ? <input type="hidden" name="next" value={next} /> : null}
+        <input
+          name="url"
+          type="url"
+          required
+          inputMode="url"
+          autoComplete="off"
+          placeholder="https://….supabase.co/auth/v1/verify?token=…"
+          className="field text-[13px]"
+        />
+        <Button type="submit" variant="secondary" size="lg" full disabled={pending}>
+          {pending ? '確認中…' : 'リンクでログイン'}
+        </Button>
+
+        {message ? (
+          <p
+            role="alert"
+            className="rounded-app border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+          >
+            {message}
+          </p>
+        ) : null}
+      </form>
+    </div>
   )
 }

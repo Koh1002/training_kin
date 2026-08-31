@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { describeSendError, describeVerifyError } from '@/lib/auth-errors'
+import {
+  describeCallbackError,
+  describeSendError,
+  describeVerifyError,
+} from '@/lib/auth-errors'
 
 describe('describeSendError', () => {
   it('送信上限のときは、届いているメールで進めると伝える', () => {
@@ -78,5 +82,24 @@ describe('describeVerifyError', () => {
 
   it('未知のコードでも日本語で返す', () => {
     expect(describeVerifyError(undefined)).toContain('コードが違うか')
+  })
+})
+
+describe('describeCallbackError', () => {
+  it('リンクに情報が無かった場合を説明する', () => {
+    expect(describeCallbackError('missing_code')).toContain('送り直して')
+  })
+
+  it('別ブラウザで開いた可能性と、その回避手段を示す', () => {
+    const message = describeCallbackError('exchange_failed')
+    expect(message).toContain('別のブラウザ')
+    // 貼り付け欄は PKCE の検証用の値を使わないので、ブラウザが違っても通る
+    expect(message).toContain('貼り付け')
+  })
+
+  it('知らないコードでは何も出さない', () => {
+    // 当てずっぽうの説明を出すと、間違った方向に時間を使わせる
+    expect(describeCallbackError('something_else')).toBeNull()
+    expect(describeCallbackError(undefined)).toBeNull()
   })
 })
