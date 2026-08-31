@@ -154,6 +154,32 @@ Supabase に接続して、次を順に確認します。問題があれば、�
 
 `service_role` キーはアプリからは使いません。すべてのアクセスは anon key + RLS を通ります。
 
+### ログインメールのリンクが localhost に飛ぶとき
+
+原因はアプリ側と Supabase 側の 2 つがあり、見分けがつかないと直しようがありません。
+メールを送ると、送信完了の表示に**アプリが Supabase に渡した戻り先**が出ます。
+これとメールのリンクを突き合わせれば、どちらが localhost を入れているか確定します。
+
+| 画面の「戻り先」 | メールのリンク | 原因 | 直すところ |
+| --- | --- | --- | --- |
+| 本番の URL | 本番の URL | 正常 | — |
+| 本番の URL | localhost | **Supabase 側** | Site URL と Redirect URLs |
+| localhost | localhost | **アプリ側** | Vercel の `SITE_URL`、またはデプロイが古い |
+
+「戻り先」が本番なのにリンクが localhost になるのは、渡した戻り先が
+**Redirect URLs に登録されていない**ためです。この場合 Supabase は渡された値を捨てて
+**Site URL** に差し替えます。つまり Site URL が localhost のままだと localhost に飛びます。
+Authentication > URL Configuration で次の 2 つをどちらも直してください。
+
+- **Site URL** — 本番の URL
+- **Redirect URLs** — `https://<本番の URL>/auth/callback`（ローカル開発用の
+  `http://localhost:3000/auth/callback` と両方あって構いません）
+
+なお、リンクが直るまでの間も **6 桁コード**があればログインできます。コードは
+Magic Link テンプレートに `{{ .Token }}` があるときだけメール本文に入るので、
+まだ入れていなければ先に入れてください（リンクの設定と違って、こちらは
+Redirect URLs の影響を受けません）。
+
 ## スマホのホーム画面に追加する
 
 ジムではセット間の短い時間に数字を入れることになるので、ブラウザで URL を開くところから

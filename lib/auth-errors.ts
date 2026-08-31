@@ -13,10 +13,12 @@
 
 export type AuthErrorInfo = {
   message: string
+  /** 設定の直し方など、本文より一段小さく添える補足。 */
+  hint?: string
   /**
-   * 送信そのものは失敗したが、**すでに届いているメールのコードで先に進める**場合に true。
+   * 送信そのものは失敗したが、**すでに届いているメールで先に進める**場合に true。
    * 送信上限はまさにこれで、直前のメールが届いているからこそ上限に当たっている。
-   * ここで赤いエラーを出して止めると、使えるコードを持っているユーザーを足止めしてしまう。
+   * ここで赤いエラーを出して止めると、使えるメールを持っているユーザーを足止めしてしまう。
    */
   canUseExistingCode: boolean
 }
@@ -31,22 +33,23 @@ export function describeSendError(
   const rateLimited = code === 'over_email_send_rate_limit' || status === 429
 
   if (rateLimited) {
+    // 「6桁コードが届いているはず」と言い切らない。テンプレートに {{ .Token }} が
+    // 無ければコードはそもそも本文に入らず、届いていない人に届いていると言うことになる。
+    // 実際にそれで詰まった。手元にあるメールで試せることを並べ、無かった場合の
+    // 直し方まで書く。
     return {
       message:
-        'メールの送信上限に達しました。すでに届いているメールの6桁コードがまだ使えます。' +
-        '新しく送るには1時間ほど待つか、Supabase に独自の SMTP を設定してください。',
+        'メールの送信上限に達しました。すでに届いているメールがまだ使えます。' +
+        '本文のリンクを開くか、6桁コードがあれば下に入力してください。',
+      hint:
+        'コードが本文に無い場合は、Supabase の Authentication > Emails > Magic Link に ' +
+        '{{ .Token }} を追加してください。新しく送れるようになるまでは1時間ほどかかります' +
+        '（内蔵のメール送信は1時間あたり2通まで）。',
       canUseExistingCode: true,
     }
   }
 
   switch (code) {
-    case 'over_email_send_rate_limit':
-      return {
-        message:
-          'メールの送信上限に達しました。すでに届いているメールの6桁コードがまだ使えます。' +
-          '新しく送るには1時間ほど待つか、Supabase に独自の SMTP を設定してください。',
-        canUseExistingCode: true,
-      }
     case 'over_request_rate_limit':
       return {
         message: 'リクエストが多すぎます。少し待ってからもう一度お試しください。',
