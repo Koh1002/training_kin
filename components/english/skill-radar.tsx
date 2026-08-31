@@ -32,8 +32,8 @@ export function SkillRadar({ progress }: { progress: SkillProgress[] }) {
           <PolarRadiusAxis domain={[0, 120]} tick={false} axisLine={false} />
           <Radar
             dataKey="percent"
-            stroke="var(--color-english)"
-            fill="var(--color-english)"
+            stroke="var(--color-data-ink)"
+            fill="var(--color-data-ink)"
             fillOpacity={0.3}
           />
         </RadarChart>

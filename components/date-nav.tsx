@@ -12,8 +12,15 @@ export function DateNav({ date, basePath }: { date: string; basePath: string }) 
   const go = (next: string) => router.push(`${basePath}?date=${next}`)
 
   return (
+    // 日付は見出しなので、前後の矢印は枠を持たせず控えめにする。
+    // 枠付きのボタンを両端に置くと、日付より矢印の方が目立っていた。
     <div className="mb-4 flex items-center justify-between gap-2">
-      <IconButton type="button" onClick={() => go(shiftDate(date, -1))} aria-label="前の日">
+      <IconButton
+        type="button"
+        variant="ghost"
+        onClick={() => go(shiftDate(date, -1))}
+        aria-label="前の日"
+      >
         <ChevronLeft size={18} aria-hidden />
       </IconButton>
 
@@ -30,6 +37,7 @@ export function DateNav({ date, basePath }: { date: string; basePath: string }) 
 
       <IconButton
         type="button"
+        variant="ghost"
         onClick={() => go(shiftDate(date, 1))}
         aria-label="次の日"
         disabled={date >= today}

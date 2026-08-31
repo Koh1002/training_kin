@@ -5,11 +5,16 @@ import { usePathname } from 'next/navigation'
 import { BookOpen, Dumbbell, Settings } from 'lucide-react'
 
 const TABS = [
-  { href: '/workout', label: '筋トレ', Icon: Dumbbell, accent: 'var(--accent-workout)' },
-  { href: '/english', label: '英語', Icon: BookOpen, accent: 'var(--accent-english)' },
+  { href: '/workout', label: '筋トレ', Icon: Dumbbell },
+  { href: '/english', label: '英語', Icon: BookOpen },
 ] as const
 
-/** 筋トレ / 英語を切り替える上部タブ。下線の色でどちらにいるかを示す。 */
+/**
+ * 筋トレ / 英語を切り替える上部タブ。
+ *
+ * 以前はタブごとに色を割り当てていたが、切り替えるたびにアプリの色が変わって
+ * 落ち着かなかった。いまはどちらも同じ前景色で、下線の有無だけで示す。
+ */
 export function TopTabs() {
   const pathname = usePathname()
   const settingsActive = pathname.startsWith('/settings')
@@ -22,22 +27,22 @@ export function TopTabs() {
       style={{ paddingTop: 'var(--safe-top)' }}
     >
       <nav className="mx-auto flex w-full max-w-2xl items-stretch px-2">
-        {TABS.map(({ href, label, Icon, accent }) => {
+        {TABS.map(({ href, label, Icon }) => {
           const active = pathname.startsWith(href)
           return (
             <Link
               key={href}
               href={href}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors"
-              style={{ color: active ? accent : 'var(--muted)' }}
+              className={`relative flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                active ? 'text-foreground' : 'text-muted'
+              }`}
             >
-              <Icon size={16} strokeWidth={2} aria-hidden />
+              <Icon size={16} strokeWidth={active ? 2.25 : 2} aria-hidden />
               {label}
-              <span
-                className="absolute inset-x-2 bottom-0 h-0.5 rounded-full"
-                style={{ background: active ? accent : 'transparent' }}
-              />
+              {active ? (
+                <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-foreground" />
+              ) : null}
             </Link>
           )
         })}

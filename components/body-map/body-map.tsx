@@ -42,7 +42,11 @@ export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle 
   return (
     <div className="space-y-3">
       {showModeToggle && onModeChange ? (
-        <div role="tablist" aria-label="表示モード" className="flex gap-1 rounded-app-lg bg-surface-muted p-1">
+        <div
+          role="tablist"
+          aria-label="表示モード"
+          className="flex gap-0.5 rounded-app-lg border border-border p-0.5"
+        >
           {(['stimulus', 'soreness'] as MapMode[]).map((m) => (
             <button
               key={m}
@@ -50,8 +54,10 @@ export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle 
               role="tab"
               aria-selected={mode === m}
               onClick={() => onModeChange(m)}
-              className={`flex-1 rounded-app px-3 py-2 text-sm font-medium transition-colors ${
-                mode === m ? 'bg-surface shadow-sm' : 'text-muted'
+              className={`flex-1 rounded-app px-3 py-1.5 text-[13px] transition-colors ${
+                mode === m
+                  ? 'bg-surface-muted font-medium text-foreground'
+                  : 'text-muted hover:text-foreground'
               }`}
             >
               {MODE_LABEL[m]}

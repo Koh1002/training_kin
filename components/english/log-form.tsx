@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { addEnglishLog, type ActionState } from '@/app/(app)/english/actions'
 import { SKILL_CODES, SKILL_LABELS } from '@/lib/english/balance'
+import { Button } from '@/components/ui/button'
 import type { EnglishActivity, SkillCode } from '@/types/database'
 
 type Props = {
@@ -50,7 +51,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
             aria-pressed={skill === code}
             className={`rounded-app border px-1 py-2 text-[13px] transition-colors ${
               skill === code
-                ? 'border-english/40 bg-english/10 font-medium text-english'
+                ? 'border-accent/40 bg-accent/10 font-medium text-foreground'
                 : 'border-border text-muted'
             }`}
           >
@@ -68,7 +69,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
             aria-pressed={a.id === activityId}
             className={`rounded-app border px-2.5 py-1.5 text-[13px] transition-colors ${
               a.id === activityId
-                ? 'border-transparent bg-english font-medium text-white'
+                ? 'border-transparent bg-accent font-medium text-accent-contrast'
                 : 'border-border bg-surface'
             }`}
           >
@@ -94,7 +95,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
                 onClick={() => setMinutes(String(m))}
                 aria-pressed={minutes === String(m)}
                 className={`rounded-app border px-3 py-1.5 text-sm transition-colors ${
-                  minutes === String(m) ? 'border-english bg-english text-white' : 'border-border bg-surface'
+                  minutes === String(m) ? 'border-accent bg-accent text-accent-contrast' : 'border-border bg-surface'
                 }`}
               >
                 {m}分
@@ -119,13 +120,9 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
             <input name="note" maxLength={200} className="field" placeholder="読んだ論文、話した内容など" />
           </label>
 
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full rounded-app-lg bg-english px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
-          >
+          <Button type="submit" variant="primary" size="lg" full disabled={pending}>
             {pending ? '記録中…' : '記録する'}
-          </button>
+          </Button>
         </div>
       ) : (
         <p className="text-sm text-muted">項目を選ぶと時間を入力できます。</p>

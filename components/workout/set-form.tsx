@@ -115,7 +115,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
       <input type="hidden" name="exerciseId" value={exerciseId ?? ''} />
 
       {/* カテゴリ */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
+      <div className="scroll-x flex gap-1.5 pb-1">
         {(['recent', ...CATEGORY_ORDER] as const).map((c) => (
           <button
             key={c}
@@ -124,7 +124,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
             aria-pressed={category === c}
             className={`shrink-0 rounded-full border px-3 py-1.5 text-[13px] transition-colors ${
               category === c
-                ? 'border-workout/40 bg-workout/10 font-medium text-workout'
+                ? 'border-accent/40 bg-accent/10 font-medium text-foreground'
                 : 'border-border text-muted'
             }`}
           >
@@ -143,7 +143,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
             aria-pressed={e.id === exerciseId}
             className={`rounded-app border px-2.5 py-1.5 text-[13px] transition-colors ${
               e.id === exerciseId
-                ? 'border-transparent bg-workout font-medium text-white'
+                ? 'border-transparent bg-accent font-medium text-accent-contrast'
                 : 'border-border bg-surface hover:border-border-strong'
             }`}
           >
@@ -168,7 +168,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
                 .join('・')}
             </span>
             {exercise.is_unilateral ? (
-              <span className="rounded-app-sm border border-workout/30 px-1.5 py-0.5 text-[11px] text-workout">左右別</span>
+              <span className="rounded-app-sm border border-accent/30 px-1.5 py-0.5 text-[11px] text-foreground">左右別</span>
             ) : null}
           </div>
 
@@ -223,8 +223,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
             </p>
             <Button
               type="submit"
-              variant="accent"
-              accentColor="var(--accent-workout)"
+              variant="primary"
               size="md"
               disabled={pending}
               className="shrink-0 whitespace-nowrap"

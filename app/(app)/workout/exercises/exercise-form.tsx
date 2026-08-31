@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { MUSCLES } from '@/lib/muscles'
+import { Button } from '@/components/ui/button'
 import { createExercise, type ActionState } from './actions'
 
 const CATEGORIES = [
@@ -94,7 +95,7 @@ export function ExerciseForm() {
           {MUSCLES.map((m) => (
             <label
               key={m.code}
-              className="cursor-pointer rounded-app border border-border px-2 py-1 text-[13px] has-checked:border-workout has-checked:bg-workout has-checked:text-white"
+              className="cursor-pointer rounded-app border border-border px-2 py-1 text-[13px] has-checked:border-accent has-checked:bg-accent has-checked:text-accent-contrast"
             >
               <input type="checkbox" name="muscles" value={m.code} className="sr-only" />
               {m.nameJa}
@@ -103,13 +104,9 @@ export function ExerciseForm() {
         </div>
       </fieldset>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-app-lg bg-workout px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
-      >
+      <Button type="submit" variant="primary" size="lg" full disabled={pending}>
         {pending ? '追加中…' : '種目を追加'}
-      </button>
+      </Button>
 
       {state.message ? (
         <p

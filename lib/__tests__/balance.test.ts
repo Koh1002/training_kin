@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  balanceComment,
   balanceScore,
   currentStreak,
   emptySkillMinutes,
@@ -166,5 +167,21 @@ describe('formatMinutes', () => {
     expect(formatMinutes(45)).toBe('45分')
     expect(formatMinutes(60)).toBe('1時間')
     expect(formatMinutes(95)).toBe('1時間35分')
+  })
+})
+
+describe('balanceComment', () => {
+  it('記録が無い週は偏りを指摘しない', () => {
+    // 合計 0 分でもスコアは 0 になる。そのまま文言を選ぶと、まだ何もしていない週に
+    // 「特定の技能に偏っています」と表示され、事実に反していた。
+    expect(balanceComment(0, 0)).toBe('まだ今週の記録がありません')
+  })
+
+  it('実際に偏っている週は偏りを指摘する', () => {
+    expect(balanceComment(0, 120)).toBe('特定の技能に偏っています')
+  })
+
+  it('揃っている週は揃っていると言う', () => {
+    expect(balanceComment(100, 120)).toBe('4技能がよく揃っています')
   })
 })
