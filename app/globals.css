@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+/*
+ * 配色。筋トレ（暖色寄りのオレンジ）と英語（寒色のインディゴ）で
+ * タブごとのアクセントを分け、いまどちらにいるかを色でも分かるようにしている。
+ */
+:root {
+  --background: #f7f7f8;
+  --surface: #ffffff;
+  --surface-muted: #f1f2f4;
+  --border: #e2e4e9;
+  --foreground: #16181d;
+  --muted: #6b7280;
+  --accent-workout: #ea6a1e;
+  --accent-english: #4f5bd5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0e0f13;
+    --surface: #181a20;
+    --surface-muted: #21242c;
+    --border: #2c3039;
+    --foreground: #ecedf0;
+    --muted: #9aa1ae;
+    --accent-workout: #ff8a3d;
+    --accent-english: #7b85f0;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-workout: var(--accent-workout);
+  --color-english: var(--accent-english);
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans", Meiryo, sans-serif;
+  /* iOS でタブ切り替え時に横スクロールが出ないように */
+  overflow-x: hidden;
+}
+
+/* 数値を等幅にして、負荷や分数が桁で揺れないようにする */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 入力欄の共通スタイル */
+.field {
+  width: 100%;
+  border-radius: 0.625rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  color: var(--foreground);
+}
+
+.field:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+/* iOS Safari で font-size < 16px の input はズームされるため下限を保つ */
+input.field,
+select.field,
+textarea.field {
+  font-size: max(1rem, 16px);
+}
