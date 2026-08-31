@@ -122,7 +122,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
             type="button"
             onClick={() => setCategory(c)}
             aria-pressed={category === c}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-[13px] transition ${
+            className={`shrink-0 rounded-full border px-3 py-1.5 text-[13px] transition-colors ${
               category === c
                 ? 'border-workout/40 bg-workout/10 font-medium text-workout'
                 : 'border-border text-muted'
@@ -141,7 +141,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
             type="button"
             onClick={() => selectExercise(e)}
             aria-pressed={e.id === exerciseId}
-            className={`rounded-app border px-2.5 py-1.5 text-[13px] transition ${
+            className={`rounded-app border px-2.5 py-1.5 text-[13px] transition-colors ${
               e.id === exerciseId
                 ? 'border-transparent bg-workout font-medium text-white'
                 : 'border-border bg-surface hover:border-border-strong'
@@ -307,7 +307,7 @@ function NumberField({
             type="button"
             onClick={() => bump(-step)}
             aria-label={`${label}を${step}減らす`}
-            className="grid w-10 shrink-0 place-items-center text-muted transition hover:bg-surface-muted hover:text-foreground"
+            className="grid w-10 shrink-0 place-items-center text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
           >
             <Minus size={16} aria-hidden />
           </button>
@@ -316,7 +316,7 @@ function NumberField({
             type="button"
             onClick={() => bump(step)}
             aria-label={`${label}を${step}増やす`}
-            className="grid w-10 shrink-0 place-items-center text-muted transition hover:bg-surface-muted hover:text-foreground"
+            className="grid w-10 shrink-0 place-items-center text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
           >
             <Plus size={16} aria-hidden />
           </button>

@@ -61,7 +61,7 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   })
 
   if (error) {
-    const info = describeSendError(error.code, error.message)
+    const info = describeSendError(error.code, error.status, error.message)
 
     // 送信上限に当たったということは、直前のメールが届いているということでもある。
     // そのコードがまだ有効な可能性が高いので、入力欄まで進めて手元のコードを使わせる。
@@ -118,7 +118,7 @@ export async function verifyOtpCode(_prev: VerifyState, formData: FormData): Pro
   })
 
   if (error) {
-    return { status: 'error', message: describeVerifyError(error.code) }
+    return { status: 'error', message: describeVerifyError(error.code, error.status) }
   }
 
   // 成功したら遷移する。redirect() は例外を投げて制御を返さないので、

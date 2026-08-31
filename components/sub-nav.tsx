@@ -21,7 +21,7 @@ export function SubNav({ items, accent }: { items: Item[]; accent: string }) {
             key={item.href}
             href={item.href}
             aria-current={active ? 'page' : undefined}
-            className="flex-1 rounded-app px-3 py-1.5 text-center text-[13px] font-medium transition"
+            className="flex-1 rounded-app px-3 py-1.5 text-center text-[13px] font-medium transition-colors"
             style={
               active
                 ? { background: 'var(--surface)', color: accent, boxShadow: '0 1px 2px rgb(0 0 0 / 0.06)' }

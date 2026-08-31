@@ -48,7 +48,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
               setActivityId(null)
             }}
             aria-pressed={skill === code}
-            className={`rounded-app border px-1 py-2 text-[13px] transition ${
+            className={`rounded-app border px-1 py-2 text-[13px] transition-colors ${
               skill === code
                 ? 'border-english/40 bg-english/10 font-medium text-english'
                 : 'border-border text-muted'
@@ -66,7 +66,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
             type="button"
             onClick={() => setActivityId(a.id === activityId ? null : a.id)}
             aria-pressed={a.id === activityId}
-            className={`rounded-app border px-2.5 py-1.5 text-[13px] transition ${
+            className={`rounded-app border px-2.5 py-1.5 text-[13px] transition-colors ${
               a.id === activityId
                 ? 'border-transparent bg-english font-medium text-white'
                 : 'border-border bg-surface'
@@ -93,7 +93,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
                 type="button"
                 onClick={() => setMinutes(String(m))}
                 aria-pressed={minutes === String(m)}
-                className={`rounded-app border px-3 py-1.5 text-sm transition ${
+                className={`rounded-app border px-3 py-1.5 text-sm transition-colors ${
                   minutes === String(m) ? 'border-english bg-english text-white' : 'border-border bg-surface'
                 }`}
               >

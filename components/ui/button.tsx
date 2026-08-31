@@ -39,7 +39,7 @@ export function Button({
 }: Props) {
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-app font-medium transition disabled:pointer-events-none disabled:opacity-50 ${
+      className={`inline-flex items-center justify-center rounded-app font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 ${
         VARIANTS[variant]
       } ${SIZES[size]} ${full ? 'w-full' : ''} ${className}`}
       style={variant === 'accent' && accentColor ? { background: accentColor, ...style } : style}
