@@ -8,24 +8,32 @@
  * 装飾を減らして数字と人体図が主役になるようにしている。
  */
 :root {
-  --background: #ffffff;
-  --surface: #ffffff;
-  --surface-muted: #f4f4f5;
-  --border: #e4e4e7;
-  --border-strong: #d4d4d8;
-  --foreground: #09090b;
-  --muted: #71717a;
-  --accent-workout: #c2410c;
-  --accent-english: #4338ca;
-  --ring: #09090b;
+  /*
+   * カードは常に背景より明るくする。
+   * beUI のドキュメントサイトは逆（カードの方が暗い）だが、あちらは余白が主役で
+   * カードが点在する構成。このアプリはカードが画面をほぼ埋めるので、同じことを
+   * すると画面全体が均一な灰色になって沈む。地を落としてカードを浮かせる。
+   */
+  --background: oklch(96.5% 0 0);
+  --surface: oklch(100% 0 0);
+  --surface-muted: oklch(94% 0 0);
+  /* ボーダーは実色ではなく alpha。地の色が変わっても馴染む */
+  --border: oklch(15% 0 0 / 0.08);
+  --border-strong: oklch(15% 0 0 / 0.14);
+  --foreground: oklch(15% 0 0);
+  --muted: oklch(50% 0 0);
+  --accent-workout: oklch(58% 0.16 42);
+  --accent-english: oklch(52% 0.19 275);
+  /* フォーカスリングは前景色ではなく強めのボーダー色。刺さりすぎないように */
+  --ring: oklch(15% 0 0 / 0.45);
 
   /*
    * 人体図の専用色。カードの地とも、未刺激の筋群とも見分けが付く必要があるため、
    * surface-muted を流用せず独立させている。
    */
-  --body-fill: #e8e8ea;
-  --body-stroke: #c8c8cd;
-  --body-muscle-idle: #d8d8dd;
+  --body-fill: oklch(93% 0 0);
+  --body-stroke: oklch(84% 0 0);
+  --body-muscle-idle: oklch(88.5% 0 0);
 
   /* 角丸はここを基準に段階を作る */
   --radius: 0.5rem;
@@ -35,20 +43,20 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #09090b;
-    --surface: #101012;
-    --surface-muted: #18181b;
-    --border: #27272a;
-    --border-strong: #3f3f46;
-    --foreground: #fafafa;
-    --muted: #a1a1aa;
-    --accent-workout: #fb923c;
-    --accent-english: #a5b4fc;
-    --ring: #fafafa;
+    --background: #151515;
+    --surface: #1c1c1c;
+    --surface-muted: #232323;
+    --border: rgb(255 255 255 / 0.07);
+    --border-strong: rgb(255 255 255 / 0.13);
+    --foreground: oklch(96% 0 0);
+    --muted: oklch(62% 0 0);
+    --accent-workout: oklch(75% 0.15 55);
+    --accent-english: oklch(78% 0.12 275);
+    --ring: rgb(255 255 255 / 0.5);
 
-    --body-fill: #1c1c20;
-    --body-stroke: #35353b;
-    --body-muscle-idle: #26262b;
+    --body-fill: #242424;
+    --body-stroke: #3a3a3a;
+    --body-muscle-idle: #2e2e2e;
   }
 }
 
@@ -89,8 +97,8 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
-    "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system,
+    "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
   /* iOS でタブ切り替え時に横スクロールが出ないように */
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -103,9 +111,14 @@ h3 {
   letter-spacing: -0.015em;
 }
 
-/* 数値を等幅にして、負荷や分数が桁で揺れないようにする */
+/*
+ * 数値は等幅の書体で桁を揃える。負荷（kg）や学習時間は毎日見比べるものなので、
+ * 数字の幅が揺れると増減が読み取りにくくなる。
+ */
 .tabular {
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 /* フォーカスリングを全体で統一する。キーボード操作で見失わないように */

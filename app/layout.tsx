@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
+
+// 本文は Geist、数値と等幅が要る箇所は Geist Mono。
+// 負荷（kg）や学習時間は毎日見比べる数字なので、桁が揃う書体にしている。
+const sans = Geist({ subsets: ['latin'], variable: '--font-sans', display: 'swap' })
+const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' })
 
 const APP_NAME = '筋トレ & 英語ログ'
 const APP_DESCRIPTION = '筋トレの負荷と英語4技能の学習時間を毎日記録して可視化するアプリ'
@@ -38,7 +44,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ja">
+    <html lang="ja" className={`${sans.variable} ${mono.variable}`}>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>
   )

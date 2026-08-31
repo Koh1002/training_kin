@@ -50,7 +50,7 @@ export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle 
               role="tab"
               aria-selected={mode === m}
               onClick={() => onModeChange(m)}
-              className={`flex-1 rounded-app px-3 py-2 text-sm font-medium transition ${
+              className={`flex-1 rounded-app px-3 py-2 text-sm font-medium transition-colors ${
                 mode === m ? 'bg-surface shadow-sm' : 'text-muted'
               }`}
             >

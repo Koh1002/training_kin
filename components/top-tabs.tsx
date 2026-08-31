@@ -29,7 +29,7 @@ export function TopTabs() {
               key={href}
               href={href}
               aria-current={active ? 'page' : undefined}
-              className="relative flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition"
+              className="relative flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors"
               style={{ color: active ? accent : 'var(--muted)' }}
             >
               <Icon size={16} strokeWidth={2} aria-hidden />
@@ -45,7 +45,7 @@ export function TopTabs() {
           href="/settings"
           aria-label="設定"
           aria-current={settingsActive ? 'page' : undefined}
-          className="flex w-11 items-center justify-center transition"
+          className="flex w-11 items-center justify-center transition-colors"
           style={{ color: settingsActive ? 'var(--foreground)' : 'var(--muted)' }}
         >
           <Settings size={17} strokeWidth={2} aria-hidden />
