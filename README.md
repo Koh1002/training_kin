@@ -77,8 +77,11 @@ soreness(筋群, 日) = clamp01( Σ  その日の筋群負荷 / 基準値 × カ
    - **Site URL** — 本番の URL（`https://<your-app>.vercel.app`）。
      既定の `http://localhost:3000` のままだと、許可されていない戻り先を要求したときに
      ここへフォールバックし、スマホから開いて「サーバが見つかりません」になる。
-   - **Redirect URLs** — `http://localhost:3000/auth/callback` と
-     本番の `https://<your-app>.vercel.app/auth/callback` を追加する。
+   - **Redirect URLs** — 本番の `https://<your-app>.vercel.app/auth/callback` を追加する。
+     ローカルで `npm run dev` を使うなら `http://localhost:3000/auth/callback` も。
+     **どちらも完全一致の 1 行でよく、ワイルドカードは要りません。**
+     アプリは戻り先にクエリ文字列を付けないためです（理由は
+     `lib/auth-next-cookie.ts`）。
 5. **独自の SMTP を設定する**（Project Settings > Authentication > SMTP Settings）。
    Supabase の組み込みメール送信は**共有の検証用サービス**で、**1時間あたり数通**しか
    送れません。少し試すだけで `email rate limit exceeded` に当たり、実用になりません。
@@ -174,6 +177,13 @@ Authentication > URL Configuration で次の 2 つをどちらも直してくだ
 - **Site URL** — 本番の URL
 - **Redirect URLs** — `https://<本番の URL>/auth/callback`（ローカル開発用の
   `http://localhost:3000/auth/callback` と両方あって構いません）
+
+照合は **URL 全体に対するパターン一致**で、部分一致ではありません。登録した値と
+戻り先が 1 文字でも違えば差し替えが起きます。とくにクエリ文字列は見落としやすく、
+かつては `?next=/workout` を付けていたために、**ホーム画面から起動した場合だけ
+ログインできない**という状態になっていました（`/login` を直接開いたときは `next` が
+付かないので成功し、原因が見えにくい）。いまは戻り先にクエリを付けず、ログイン後の
+行き先は Cookie で運んでいます。詳細は `lib/auth-next-cookie.ts`。
 
 ### メールテンプレートが編集できないとき
 

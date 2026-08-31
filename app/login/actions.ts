@@ -1,10 +1,11 @@
 'use server'
 
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { describeSendError, describeVerifyError } from '@/lib/auth-errors'
 import { parseMagicLink } from '@/lib/auth-link'
+import { isSecureOrigin, NEXT_COOKIE, nextCookieOptions } from '@/lib/auth-next-cookie'
 import { safeDestination } from '@/lib/safe-redirect'
 import { resolveOrigin } from '@/lib/site-origin'
 import { createClient } from '@/lib/supabase/server'
@@ -59,8 +60,11 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
     headerList.get('x-forwarded-host') ?? headerList.get('host'),
   )
 
+  // クエリ文字列は付けない。Supabase は戻り先を Redirect URLs のパターンと
+  // URL 全体で照合し、一致しなければ値を捨てて Site URL に差し替える。
+  // `?next=…` が付くと完全一致の登録に一致せず、差し替えられた結果
+  // /auth/callback を通らないままログインが失敗する。行き先は Cookie で運ぶ。
   const redirectTo = new URL('/auth/callback', origin)
-  if (parsed.data.next) redirectTo.searchParams.set('next', parsed.data.next)
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithOtp({
@@ -85,6 +89,13 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
     }
 
     return { status: 'error', message: info.message }
+  }
+
+  // 行き先を預ける。書く時点で安全な値に丸めておけば、読み取り側が
+  // 壊れた値を受け取ることがない。
+  if (parsed.data.next) {
+    const cookieStore = await cookies()
+    cookieStore.set(NEXT_COOKIE, safeDestination(parsed.data.next), nextCookieOptions(isSecureOrigin(origin)))
   }
 
   return {
