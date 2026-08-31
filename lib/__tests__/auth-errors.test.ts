@@ -2,13 +2,23 @@ import { describe, expect, it } from 'vitest'
 import { describeSendError, describeVerifyError } from '@/lib/auth-errors'
 
 describe('describeSendError', () => {
-  it('送信上限のときは、届いているコードで進めると伝える', () => {
+  it('送信上限のときは、届いているメールで進めると伝える', () => {
     const info = describeSendError('over_email_send_rate_limit', 429, 'email rate limit exceeded')
     expect(info.canUseExistingCode).toBe(true)
     expect(info.message).toContain('すでに届いている')
-    expect(info.message).toContain('SMTP')
+    // リンクとコードの両方を案内する。リンクが生きていればコードは要らない。
+    expect(info.message).toContain('リンク')
     // Supabase の英語メッセージをそのまま出さない
     expect(info.message).not.toContain('rate limit exceeded')
+  })
+
+  it('送信上限の文面はコードが届いていると断定しない', () => {
+    // テンプレートに {{ .Token }} が無ければコードは本文に入らない。
+    // 「6桁コードが使えます」と言い切ると、届いていない人を袋小路に送り込む。
+    const info = describeSendError(undefined, 429, 'email rate limit exceeded')
+    expect(info.hint).toBeDefined()
+    expect(info.hint).toContain('{{ .Token }}')
+    expect(info.hint).toContain('1時間')
   })
 
   it('code が来なくても 429 なら送信上限として扱う', () => {

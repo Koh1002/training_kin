@@ -29,7 +29,14 @@ export type LoginState =
   | { status: 'idle' }
   // tone は通知の色。送信上限のときも入力欄までは進めるので、
   // 「送れた」と「送れなかったが手元のコードで進める」を色で区別する。
-  | { status: 'sent'; email: string; message: string; tone: 'info' | 'warning' }
+  | {
+      status: 'sent'
+      email: string
+      message: string
+      /** 設定の直し方など、本文より一段小さく添える補足。 */
+      hint?: string
+      tone: 'info' | 'warning'
+    }
   | { status: 'error'; message: string }
 
 export async function sendMagicLink(_prev: LoginState, formData: FormData): Promise<LoginState> {
@@ -71,6 +78,7 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
         status: 'sent',
         email: parsed.data.email,
         message: info.message,
+        hint: info.hint,
         tone: 'warning',
       }
     }
@@ -82,6 +90,12 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
     status: 'sent',
     email: parsed.data.email,
     message: `${parsed.data.email} にログイン用のリンクとコードを送りました。`,
+    // 戻り先を画面に出す。「メールのリンクが localhost に飛ぶ」とき、原因が
+    // アプリ側（送っている値そのものが localhost）なのか Supabase 側
+    // （redirect_to が Redirect URLs に無く Site URL に差し替えられた）なのかは、
+    // 送った値が見えないと切り分けられない。ここに出ている値とメールの
+    // リンクが食い違っていれば、原因は Supabase の設定側だと確定する。
+    hint: `戻り先: ${redirectTo.toString()}`,
     tone: 'info',
   }
 }

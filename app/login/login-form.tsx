@@ -33,16 +33,17 @@ export function LoginForm({ next }: { next?: string }) {
   if (showCodeStep) {
     return (
       <div className="space-y-4">
-        <p
+        <div
           role="status"
-          className={`rounded-app border px-3 py-2 text-sm ${
+          className={`space-y-1.5 rounded-app border px-3 py-2 text-sm ${
             sendState.tone === 'warning'
               ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400'
               : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
           }`}
         >
-          {sendState.message}
-        </p>
+          <p>{sendState.message}</p>
+          {sendState.hint ? <p className="text-xs opacity-80">{sendState.hint}</p> : null}
+        </div>
 
         <form action={verifyAction} className="space-y-4">
           <input type="hidden" name="email" value={sendState.email} />
