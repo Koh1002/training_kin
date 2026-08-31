@@ -14,7 +14,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-dvh">
       <TopTabs />
-      <main className="mx-auto w-full max-w-2xl px-4 pb-24 pt-4">{children}</main>
+      {/* 下端はホームインジケータに隠れるので、その高さを既存の余白に足す */}
+      <main
+        className="mx-auto w-full max-w-2xl px-4 pt-4"
+        style={{ paddingBottom: 'calc(6rem + var(--safe-bottom))' }}
+      >
+        {children}
+      </main>
     </div>
   )
 }

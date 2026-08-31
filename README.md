@@ -24,6 +24,15 @@
   部位をタップすると、その部位に効いた種目と負荷の内訳が出ます。
 - **休養日** — 1タップで「オフ」を記録。理由（出張・二日酔いなど）も残せます。
 
+### 🔑 ログイン
+
+パスワードは持ちません。メールアドレスを入れると、**マジックリンクと 6 桁のコードが入った
+メールが 1 通**届き、どちらでもログインできます。
+
+コードを用意しているのは、メールクライアントが長い URL を折り返すとリンクが途中で切れて
+開けなくなることがあるためです。スマホでは通知のプレビューからコードを読んで入力する方が
+速く、メールアプリとブラウザを行き来せずに済みます。
+
 ### 📖 英語
 
 - Reading / Listening / Speaking / Writing の4技能 × 23項目から選び、**分数だけ**を記録します。
@@ -64,9 +73,24 @@ soreness(筋群, 日) = clamp01( Σ  その日の筋群負荷 / 基準値 × カ
    3つとも**何度実行しても壊れません**。途中で失敗したら、直してから頭から流し直して構いません。
 3. Authentication > Providers で **Email** を有効にする（マジックリンクを使うので
    「Confirm email」は有効のままでよい）。
-4. Authentication > URL Configuration の **Redirect URLs** に
-   `http://localhost:3000/auth/callback` と本番の `https://<your-app>.vercel.app/auth/callback`
-   を追加する。
+4. Authentication > URL Configuration を設定する。**2 つあるので両方**触ること。
+   - **Site URL** — 本番の URL（`https://<your-app>.vercel.app`）。
+     既定の `http://localhost:3000` のままだと、許可されていない戻り先を要求したときに
+     ここへフォールバックし、スマホから開いて「サーバが見つかりません」になる。
+   - **Redirect URLs** — `http://localhost:3000/auth/callback` と
+     本番の `https://<your-app>.vercel.app/auth/callback` を追加する。
+5. **独自の SMTP を設定する**（Project Settings > Authentication > SMTP Settings）。
+   Supabase の組み込みメール送信は**共有の検証用サービス**で、**1時間あたり数通**しか
+   送れません。少し試すだけで `email rate limit exceeded` に当たり、実用になりません。
+   Resend / SendGrid / Amazon SES などを設定してください。設定後は
+   Authentication > Rate Limits で上限も引き上げられます。
+6. Authentication > Email Templates > **Magic Link** に `{{ .Token }}` を足す。
+   既定のテンプレートはリンクだけで、**これを足さないと 6 桁コードが届かない**。
+   本文の最後にこんな行を足せばよい:
+
+   ```html
+   <p>または、次のコードを入力してください: <strong>{{ .Token }}</strong></p>
+   ```
 
 ### 2. ローカル開発
 
@@ -106,10 +130,52 @@ Supabase に接続して、次を順に確認します。問題があれば、�
 2. 環境変数を設定する。
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_SITE_URL`（例 `https://your-app.vercel.app`。マジックリンクの戻り先に使う）
+   - `SITE_URL`（例 `https://your-app.vercel.app`。マジックリンクの戻り先に使う）
+
+   `SITE_URL` に `NEXT_PUBLIC_` は付けません。この値は Server Action の中でしか読まないため、
+   付けると Vercel に「ブラウザへ露出する」と警告されます。未設定でもリクエストのホストから
+   組み立てて動きますが、本番では宛先を推測に頼らないよう設定しておくことを勧めます。
 3. デプロイ後、その URL を Supabase の Redirect URLs にも追加する。
 
 `service_role` キーはアプリからは使いません。すべてのアクセスは anon key + RLS を通ります。
+
+## スマホのホーム画面に追加する
+
+ジムではセット間の短い時間に数字を入れることになるので、ブラウザで URL を開くところから
+始まるのは面倒です。ホーム画面に追加すると、アイコンから直接・全画面で起動できます
+（アドレスバーが消えるぶん画面も広くなります）。
+
+- **iPhone / iPad** — Safari で開き、共有ボタン → 「ホーム画面に追加」。iOS 15.4 以降が必要です。
+- **Android** — Chrome で開き、メニュー → 「ホーム画面に追加」。
+
+ノッチやホームインジケータのある端末でも、上部タブがステータスバーに潜り込んだり、
+最下部のボタンがインジケータに隠れたりしないようにしてあります
+（`app/globals.css` の `--safe-top` / `--safe-bottom`）。
+
+### サービスワーカーは入れていません
+
+Chrome の「インストール」プロンプトを出すには、オフラインで動くサービスワーカーが要ります。
+ただしこのアプリは**全画面が Supabase への問い合わせに依存していて、オフラインでは何も表示できません**。
+キャッシュを持たせても古いデータや壊れたログイン状態を見せるだけなので、入れない判断をしました。
+
+サービスワーカーが無くても、manifest の `display: standalone` によって
+**iOS も Android もホーム画面から全画面で起動します**。自動のインストールプロンプトが出ないだけです。
+
+### アイコンを作り直す
+
+元図は `design/icons/` にある SVG 3 枚です（通常 / ファビコン用に図形を拡大したもの /
+Android の切り抜き用に縮めたもの）。色や形を変えたらここを編集して、PNG を書き出し直します。
+
+| 書き出し先 | サイズ | 元図 | 用途 |
+|---|---|---|---|
+| `app/icon.png` | 32 | `icon-small.svg` | ブラウザのタブ |
+| `app/apple-icon.png` | 180 | `icon.svg` | iOS のホーム画面（iOS は manifest のアイコンを見ない） |
+| `public/icon-192.png` | 192 | `icon.svg` | manifest |
+| `public/icon-512.png` | 512 | `icon.svg` | manifest |
+| `public/icon-maskable-512.png` | 512 | `icon-maskable.svg` | Android のアダプティブアイコン |
+
+書き出しは SVG を指定サイズで描画して PNG 保存するだけなので、ブラウザや画像ツールなど
+好きな方法で構いません。PNG はリポジトリにコミットしてあります。
 
 ## コマンド
 
@@ -126,6 +192,8 @@ npm run lint       # ESLint
 
 ```
 app/
+  manifest.ts             PWA の manifest（ホーム画面に追加したときの名前・アイコン）
+  icon.png / apple-icon.png  タブと iOS ホーム画面のアイコン
   login/                  マジックリンクのログイン
   auth/callback/          セッション確立
   (app)/                  上部タブ（筋トレ / 英語）+ 認証ガード
@@ -144,6 +212,7 @@ components/
   body-map/               人体図の SVG（左半身を定義して左右反転で全身にする）
 supabase/migrations/      スキーマ・RLS・ビュー・マスタ投入・診断用の関数
 scripts/check-setup.mjs   セットアップ診断（npm run check:setup）
+design/icons/             アイコンの元図（SVG）。PNG はここから書き出す
 ```
 
 ## 設計上の判断
@@ -165,3 +234,7 @@ scripts/check-setup.mjs   セットアップ診断（npm run check:setup）
   `service_role` キーを手元に置かせるのは権限が強すぎるため、
   `public.setup_status()` が**共通マスタの件数と RLS の有効/無効だけ**を返します。
   個人のデータは 1 行も通らず、動的 SQL も使いません。
+- **セーフエリアは `env()` を直接書かず変数に通す** — `--safe-top` / `--safe-bottom` を
+  `:root` に置き、各所ではそれを参照しています。`env()` を直に書くとヘッドレスブラウザでは
+  常に 0 になり、ノッチ対応ができているかを確かめる手段が無くなるためです。
+  変数にしておけば実機相当の値を流し込んで再現・確認できます。
