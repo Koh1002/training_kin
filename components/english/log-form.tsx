@@ -48,9 +48,9 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
               setActivityId(null)
             }}
             aria-pressed={skill === code}
-            className={`rounded-lg border px-1 py-2 text-[13px] transition ${
+            className={`rounded-app border px-1 py-2 text-[13px] transition ${
               skill === code
-                ? 'border-english bg-english/10 font-medium text-english'
+                ? 'border-english/40 bg-english/10 font-medium text-english'
                 : 'border-border text-muted'
             }`}
           >
@@ -66,9 +66,9 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
             type="button"
             onClick={() => setActivityId(a.id === activityId ? null : a.id)}
             aria-pressed={a.id === activityId}
-            className={`rounded-lg border px-2.5 py-1.5 text-[13px] transition ${
+            className={`rounded-app border px-2.5 py-1.5 text-[13px] transition ${
               a.id === activityId
-                ? 'border-english bg-english font-medium text-white'
+                ? 'border-transparent bg-english font-medium text-white'
                 : 'border-border bg-surface'
             }`}
           >
@@ -78,7 +78,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
       </div>
 
       {selected ? (
-        <div className="space-y-3 rounded-xl border border-border bg-surface-muted p-3">
+        <div className="space-y-3 rounded-app-lg border border-border bg-surface-muted p-3">
           <div>
             <strong className="text-[15px]">{selected.name_ja}</strong>
             {selected.description ? (
@@ -93,7 +93,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
                 type="button"
                 onClick={() => setMinutes(String(m))}
                 aria-pressed={minutes === String(m)}
-                className={`rounded-lg border px-3 py-1.5 text-sm transition ${
+                className={`rounded-app border px-3 py-1.5 text-sm transition ${
                   minutes === String(m) ? 'border-english bg-english text-white' : 'border-border bg-surface'
                 }`}
               >
@@ -122,7 +122,7 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-xl bg-english px-4 py-2.5 font-semibold text-white disabled:opacity-50"
+            className="w-full rounded-app-lg bg-english px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {pending ? '記録中…' : '記録する'}
           </button>

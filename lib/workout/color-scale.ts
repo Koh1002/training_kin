@@ -35,9 +35,9 @@ export function intensityColor(mode: MapMode, value: number): string {
   const v = Math.max(0, Math.min(1, value))
   const stops = SCALES[mode]
 
-  // 未刺激はテーマの地の色に沈める。ここだけ固定色にすると、
-  // ダークテーマで「鍛えていない部位」の方が明るく目立ってしまう。
-  if (v <= 0) return 'var(--color-surface-muted)'
+  // 未刺激は人体図の地に沈めるが、部位の境目は分かるようにわずかに差を付ける。
+  // ここを固定色にすると、ダークテーマで「鍛えていない部位」の方が明るく目立ってしまう。
+  if (v <= 0) return 'var(--body-muscle-idle)'
 
   for (let i = 1; i < stops.length; i++) {
     const prev = stops[i - 1]

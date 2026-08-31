@@ -1,3 +1,5 @@
+import { Moon, X } from 'lucide-react'
+import { Button, IconButton } from '@/components/ui/button'
 import { redirect } from 'next/navigation'
 import { Card, CardTitle, EmptyState } from '@/components/ui/card'
 import { DateNav } from '@/components/date-nav'
@@ -96,7 +98,7 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
 
       <div className="space-y-4">
         {sore.length > 0 ? (
-          <p className="rounded-xl border border-border bg-surface px-3 py-2 text-sm">
+          <p className="rounded-app-lg border border-border bg-surface px-3 py-2 text-sm">
             <span className="text-muted">いま筋肉痛が残っている部位: </span>
             {sore.map((s) => `${muscleName(s.code)}（${Math.round(s.value * 100)}%）`).join('、')}
           </p>
@@ -130,8 +132,9 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
 
           {isRest ? (
             <div className="space-y-2">
-              <p className="rounded-xl bg-surface-muted px-4 py-5 text-center text-sm">
-                😴 休養日（{session?.rest_reason}）
+              <p className="flex items-center justify-center gap-2 rounded-app bg-surface-muted px-4 py-6 text-sm">
+                <Moon size={16} className="text-muted" aria-hidden />
+                休養日（{session?.rest_reason}）
               </p>
               <form action={clearRestDay}>
                 <input type="hidden" name="date" value={date} />
@@ -151,12 +154,10 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
                   className="field flex-1 py-2 text-sm"
                   maxLength={100}
                 />
-                <button
-                  type="submit"
-                  className="shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-muted"
-                >
-                  😴 オフにする
-                </button>
+                <Button type="submit" variant="secondary" size="md" className="shrink-0 text-muted">
+                  <Moon size={15} aria-hidden />
+                  オフにする
+                </Button>
               </form>
             </div>
           ) : (
@@ -187,13 +188,9 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
                     </span>
                     <form action={deleteSet}>
                       <input type="hidden" name="setId" value={set.set_id} />
-                      <button
-                        type="submit"
-                        aria-label={`${set.exercise_name}の記録を削除`}
-                        className="px-1 text-muted"
-                      >
-                        ✕
-                      </button>
+                      <IconButton type="submit" size="sm" aria-label={`${set.exercise_name}の記録を削除`}>
+                        <X size={15} aria-hidden />
+                      </IconButton>
                     </form>
                   </li>
                 )

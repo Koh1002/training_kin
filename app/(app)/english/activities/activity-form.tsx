@@ -35,7 +35,7 @@ export function ActivityForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-english px-4 py-2.5 font-semibold text-white disabled:opacity-50"
+        className="w-full rounded-app-lg bg-english px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
       >
         {pending ? '追加中…' : '項目を追加'}
       </button>

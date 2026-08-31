@@ -13,8 +13,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
       }}
     >
       <header className="space-y-2">
-        <p className="text-3xl">💪 📖</p>
-        <h1 className="text-2xl font-bold">筋トレ &amp; 英語ログ</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">筋トレ &amp; 英語ログ</h1>
         <p className="text-sm text-muted">
           毎日の筋トレの負荷と、英語4技能の学習時間を記録します。
           メールアドレスにログイン用のリンクと6桁のコードを送ります。

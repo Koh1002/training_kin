@@ -75,7 +75,7 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-foreground px-4 py-2.5 font-semibold text-background disabled:opacity-50"
+        className="w-full rounded-app-lg bg-foreground px-4 py-2.5 text-sm font-medium text-background disabled:opacity-50"
       >
         {pending ? '保存中…' : '保存'}
       </button>
@@ -112,7 +112,7 @@ export function GoalsForm({ goals }: { goals: Partial<Record<SkillCode, number>>
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-english px-4 py-2.5 font-semibold text-white disabled:opacity-50"
+        className="w-full rounded-app-lg bg-english px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
       >
         {pending ? '保存中…' : '週の目標を保存'}
       </button>

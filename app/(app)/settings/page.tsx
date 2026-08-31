@@ -34,7 +34,7 @@ export default async function SettingsPage() {
         <CardTitle>アカウント</CardTitle>
         <p className="mb-3 text-sm text-muted">{user.email}</p>
         <form action={signOut}>
-          <button type="submit" className="rounded-xl border border-border px-4 py-2 text-sm">
+          <button type="submit" className="rounded-app-lg border border-border px-4 py-2 text-sm">
             ログアウト
           </button>
         </form>

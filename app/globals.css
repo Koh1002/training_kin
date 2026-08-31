@@ -1,30 +1,54 @@
 @import "tailwindcss";
 
 /*
- * 配色。筋トレ（暖色寄りのオレンジ）と英語（寒色のインディゴ）で
- * タブごとのアクセントを分け、いまどちらにいるかを色でも分かるようにしている。
+ * デザイントークン。
+ *
+ * 中性的なグレーを土台にして、筋トレのオレンジと英語のインディゴは
+ * 「いまどちらのタブにいるか」を示すアクセントとしてだけ使う。面で塗らない。
+ * 装飾を減らして数字と人体図が主役になるようにしている。
  */
 :root {
-  --background: #f7f7f8;
+  --background: #ffffff;
   --surface: #ffffff;
-  --surface-muted: #f1f2f4;
-  --border: #e2e4e9;
-  --foreground: #16181d;
-  --muted: #6b7280;
-  --accent-workout: #ea6a1e;
-  --accent-english: #4f5bd5;
+  --surface-muted: #f4f4f5;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --foreground: #09090b;
+  --muted: #71717a;
+  --accent-workout: #c2410c;
+  --accent-english: #4338ca;
+  --ring: #09090b;
+
+  /*
+   * 人体図の専用色。カードの地とも、未刺激の筋群とも見分けが付く必要があるため、
+   * surface-muted を流用せず独立させている。
+   */
+  --body-fill: #e8e8ea;
+  --body-stroke: #c8c8cd;
+  --body-muscle-idle: #d8d8dd;
+
+  /* 角丸はここを基準に段階を作る */
+  --radius: 0.5rem;
+  --radius-sm: 0.375rem;
+  --radius-lg: 0.75rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0e0f13;
-    --surface: #181a20;
-    --surface-muted: #21242c;
-    --border: #2c3039;
-    --foreground: #ecedf0;
-    --muted: #9aa1ae;
-    --accent-workout: #ff8a3d;
-    --accent-english: #7b85f0;
+    --background: #09090b;
+    --surface: #101012;
+    --surface-muted: #18181b;
+    --border: #27272a;
+    --border-strong: #3f3f46;
+    --foreground: #fafafa;
+    --muted: #a1a1aa;
+    --accent-workout: #fb923c;
+    --accent-english: #a5b4fc;
+    --ring: #fafafa;
+
+    --body-fill: #1c1c20;
+    --body-stroke: #35353b;
+    --body-muscle-idle: #26262b;
   }
 }
 
@@ -33,10 +57,18 @@
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-workout: var(--accent-workout);
   --color-english: var(--accent-english);
+  --color-ring: var(--ring);
+  --color-body-fill: var(--body-fill);
+  --color-body-stroke: var(--body-stroke);
+
+  --radius-app-sm: var(--radius-sm);
+  --radius-app: var(--radius);
+  --radius-app-lg: var(--radius-lg);
 }
 
 html {
@@ -58,9 +90,17 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
-    "Hiragino Sans", Meiryo, sans-serif;
+    "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
   /* iOS でタブ切り替え時に横スクロールが出ないように */
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 見出しは少し詰めて、本文との差を字間でも作る */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
 }
 
 /* 数値を等幅にして、負荷や分数が桁で揺れないようにする */
@@ -68,25 +108,37 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* フォーカスリングを全体で統一する。キーボード操作で見失わないように */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
 /* 入力欄の共通スタイル */
 .field {
   width: 100%;
-  border-radius: 0.625rem;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--surface);
-  padding: 0.625rem 0.75rem;
-  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
   color: var(--foreground);
+  transition: border-color 120ms ease;
 }
 
-.field:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 1px;
+.field::placeholder {
+  color: var(--muted);
+}
+
+.field:hover {
+  border-color: var(--border-strong);
 }
 
 /* iOS Safari で font-size < 16px の input はズームされるため下限を保つ */
 input.field,
 select.field,
 textarea.field {
-  font-size: max(1rem, 16px);
+  font-size: max(0.9375rem, 16px);
 }

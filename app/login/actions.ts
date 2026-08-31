@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { describeSendError, describeVerifyError } from '@/lib/auth-errors'
 import { safeDestination } from '@/lib/safe-redirect'
+import { resolveOrigin } from '@/lib/site-origin'
 import { createClient } from '@/lib/supabase/server'
 
 /**
@@ -43,13 +44,12 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
 
   // マジックリンクの戻り先。SITE_URL に NEXT_PUBLIC_ を付けていないのは、
   // ここが Server Action の中だけで読まれ、ブラウザでは一度も評価されないため。
-  // 未設定のときはリクエストのホストから組み立てる（ローカル開発とプレビュー用）。
-  // 本番では固定しておく方が素直。ホストヘッダは呼び出し側から差し込める値で、
-  // 実害は Supabase の Redirect URLs 許可リストが止めるとはいえ、宛先を推測に頼らずに済む。
+  // 明らかに使えない設定（本番なのに localhost など）は resolveOrigin が弾く。
   const headerList = await headers()
-  const origin =
-    process.env.SITE_URL ??
-    `https://${headerList.get('x-forwarded-host') ?? headerList.get('host')}`
+  const origin = resolveOrigin(
+    process.env.SITE_URL,
+    headerList.get('x-forwarded-host') ?? headerList.get('host'),
+  )
 
   const redirectTo = new URL('/auth/callback', origin)
   if (parsed.data.next) redirectTo.searchParams.set('next', parsed.data.next)

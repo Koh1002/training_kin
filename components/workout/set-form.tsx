@@ -1,6 +1,8 @@
 'use client'
 
 import { useActionState, useMemo, useState } from 'react'
+import { Minus, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { addSet, type ActionState } from '@/app/(app)/workout/actions'
 import { muscleName } from '@/lib/muscles'
 import { formatVolume, setVolumeKg } from '@/lib/workout/volume'
@@ -120,9 +122,9 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
             type="button"
             onClick={() => setCategory(c)}
             aria-pressed={category === c}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-sm transition ${
+            className={`shrink-0 rounded-full border px-3 py-1.5 text-[13px] transition ${
               category === c
-                ? 'border-workout bg-workout/10 font-medium text-workout'
+                ? 'border-workout/40 bg-workout/10 font-medium text-workout'
                 : 'border-border text-muted'
             }`}
           >
@@ -139,10 +141,10 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
             type="button"
             onClick={() => selectExercise(e)}
             aria-pressed={e.id === exerciseId}
-            className={`rounded-lg border px-2.5 py-1.5 text-[13px] transition ${
+            className={`rounded-app border px-2.5 py-1.5 text-[13px] transition ${
               e.id === exerciseId
-                ? 'border-workout bg-workout font-medium text-white'
-                : 'border-border bg-surface'
+                ? 'border-transparent bg-workout font-medium text-white'
+                : 'border-border bg-surface hover:border-border-strong'
             }`}
           >
             {e.name_ja}
@@ -154,7 +156,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
       </div>
 
       {exercise ? (
-        <div className="space-y-3 rounded-xl border border-border bg-surface-muted p-3">
+        <div className="space-y-3 rounded-app-lg border border-border bg-surface-muted p-3">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <strong className="text-[15px]">{exercise.name_ja}</strong>
             <span className="text-xs text-muted">
@@ -166,7 +168,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
                 .join('・')}
             </span>
             {exercise.is_unilateral ? (
-              <span className="rounded bg-workout/15 px-1.5 py-0.5 text-[11px] text-workout">左右別</span>
+              <span className="rounded-app-sm border border-workout/30 px-1.5 py-0.5 text-[11px] text-workout">左右別</span>
             ) : null}
           </div>
 
@@ -179,7 +181,7 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
           ) : null}
 
           {exercise.load_type === 'bodyweight' ? (
-            <p className="rounded-lg bg-surface px-3 py-2 text-sm">
+            <p className="rounded-app border border-border bg-surface px-3 py-2 text-sm">
               自重 {bodyweightKg}kg × 係数 {exercise.bodyweight_factor} ={' '}
               <strong className="tabular">
                 {(bodyweightKg * (exercise.bodyweight_factor ?? 1)).toFixed(1)} kg
@@ -219,13 +221,16 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
                 </>
               )}
             </p>
-            <button
+            <Button
               type="submit"
+              variant="accent"
+              accentColor="var(--accent-workout)"
+              size="md"
               disabled={pending}
-              className="shrink-0 whitespace-nowrap rounded-xl bg-workout px-5 py-2.5 font-semibold text-white transition disabled:opacity-50"
+              className="shrink-0 whitespace-nowrap"
             >
               {pending ? '追加中…' : '追加'}
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
@@ -297,23 +302,23 @@ function NumberField({
       {compact || step === undefined ? (
         input
       ) : (
-        <span className="flex items-stretch overflow-hidden rounded-lg border border-border bg-surface">
+        <span className="flex items-stretch overflow-hidden rounded-app border border-border bg-surface">
           <button
             type="button"
             onClick={() => bump(-step)}
             aria-label={`${label}を${step}減らす`}
-            className="w-10 shrink-0 text-lg text-muted"
+            className="grid w-10 shrink-0 place-items-center text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
-            −
+            <Minus size={16} aria-hidden />
           </button>
           {input}
           <button
             type="button"
             onClick={() => bump(step)}
             aria-label={`${label}を${step}増やす`}
-            className="w-10 shrink-0 text-lg text-muted"
+            className="grid w-10 shrink-0 place-items-center text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
-            ＋
+            <Plus size={16} aria-hidden />
           </button>
         </span>
       )}

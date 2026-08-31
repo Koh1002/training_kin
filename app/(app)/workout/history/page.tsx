@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Moon } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { Card, CardTitle, EmptyState } from '@/components/ui/card'
 import { SubNav } from '@/components/sub-nav'
@@ -75,7 +76,11 @@ export default async function WorkoutHistoryPage() {
                     <span className="text-[15px]">{formatDateLabel(s.date)}</span>
                     <span className="text-sm text-muted">
                       {s.kind === 'rest' ? (
-                        `😴 ${s.rest_reason ?? 'オフ'}`
+                        <span className="inline-flex items-center gap-1.5">
+                          <Moon size={14} aria-hidden />
+                          {s.rest_reason ?? 'オフ'}
+                        </span>
+                      
                       ) : (
                         <>
                           <span className="tabular">{formatVolume(Number(s.total_volume_kg))}</span>
@@ -125,7 +130,7 @@ export default async function WorkoutHistoryPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-surface-muted px-3 py-2">
+    <div className="rounded-app bg-surface-muted px-3 py-2">
       <dt className="text-xs text-muted">{label}</dt>
       <dd className="tabular font-semibold">{value}</dd>
     </div>

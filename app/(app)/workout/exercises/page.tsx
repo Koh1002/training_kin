@@ -1,3 +1,5 @@
+import { X } from 'lucide-react'
+import { IconButton } from '@/components/ui/button'
 import { redirect } from 'next/navigation'
 import { Card, CardTitle } from '@/components/ui/card'
 import { SubNav } from '@/components/sub-nav'
@@ -76,16 +78,12 @@ export default async function ExercisesPage() {
                   {e.user_id ? (
                     <form action={deleteExercise}>
                       <input type="hidden" name="exerciseId" value={e.id} />
-                      <button
-                        type="submit"
-                        aria-label={`${e.name_ja}を削除`}
-                        className="px-1 text-muted"
-                      >
-                        ✕
-                      </button>
+                      <IconButton type="submit" size="sm" aria-label={`${e.name_ja}を削除`}>
+                        <X size={15} aria-hidden />
+                      </IconButton>
                     </form>
                   ) : (
-                    <span className="shrink-0 rounded bg-surface-muted px-1.5 py-0.5 text-[11px] text-muted">
+                    <span className="shrink-0 rounded-app-sm border border-border px-1.5 py-0.5 text-[11px] text-muted">
                       共通
                     </span>
                   )}
