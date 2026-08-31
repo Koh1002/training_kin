@@ -132,6 +132,21 @@ Supabase に接続して、次を順に確認します。問題があれば、�
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SITE_URL`（例 `https://your-app.vercel.app`。マジックリンクの戻り先に使う）
 
+   **`SITE_URL` には本番の安定したドメインを入れてください。** Vercel は 3 種類の
+   ドメインを発行しますが、使ってよいのは 1 つだけです。
+
+   | 種類 | 例 | `SITE_URL` に使う |
+   |---|---|---|
+   | 本番 | `your-app.vercel.app` | **これ** |
+   | ブランチごと | `your-app-git-main-xxx.vercel.app` | ✗ |
+   | デプロイごと | `your-app-a1b2c3-xxx.vercel.app` | ✗ デプロイのたびに変わる |
+
+   ローカルの値（`http://localhost:3000`）が残っていると、本番から送ったログインリンクが
+   localhost を指してしまいます。これは**メールは届くのに永久にログインできない**という
+   分かりにくい壊れ方をするため、`lib/site-origin.ts` が「外からのリクエストなのに
+   `SITE_URL` が localhost」という組み合わせを検出して無視するようにしていますが、
+   値そのものを正しくしておくのが本筋です。
+
    `SITE_URL` に `NEXT_PUBLIC_` は付けません。この値は Server Action の中でしか読まないため、
    付けると Vercel に「ブラウザへ露出する」と警告されます。未設定でもリクエストのホストから
    組み立てて動きますが、本番では宛先を推測に頼らないよう設定しておくことを勧めます。
