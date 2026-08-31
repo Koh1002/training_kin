@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img">
+  <title>筋トレ &amp; 英語ログ</title>
+  <!--
+    Android のアダプティブアイコン用。端末ごとに円や角丸で切り抜かれるため、
+    中身を中心から 78% に縮めて安全域（中心から半径 40%）に収め、
+    背景は端まで塗っている。切り抜かれても図形が欠けない。
+  -->
+  <rect width="512" height="512" fill="#16181d"/>
+  <g transform="translate(256 256) scale(0.78) translate(-256 -256)">
+  <rect x="76"  y="186" width="36" height="140" rx="16" fill="#ea6a1e"/>
+  <rect x="116" y="156" width="52" height="200" rx="20" fill="#ea6a1e"/>
+  <rect x="160" y="226" width="192" height="60" rx="30" fill="#ecedf0"/>
+  <rect x="344" y="156" width="52" height="200" rx="20" fill="#4f5bd5"/>
+  <rect x="400" y="186" width="36" height="140" rx="16" fill="#4f5bd5"/>
+  </g>
+</svg>

@@ -5,7 +5,13 @@ export default async function LoginPage(props: PageProps<'/login'>) {
   const next = typeof params.next === 'string' ? params.next : undefined
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-5 py-12">
+    <main
+      className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-5"
+      style={{
+        paddingTop: 'calc(3rem + var(--safe-top))',
+        paddingBottom: 'calc(3rem + var(--safe-bottom))',
+      }}
+    >
       <header className="space-y-2">
         <p className="text-3xl">💪 📖</p>
         <h1 className="text-2xl font-bold">筋トレ &amp; 英語ログ</h1>

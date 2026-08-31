@@ -13,7 +13,12 @@ export function TopTabs() {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur">
+    // ホーム画面から起動すると sticky なこのヘッダーがステータスバー／ノッチの
+    // 下に潜り込む。その高さぶんだけ上に余白を足して逃がす。
+    <header
+      className="sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur"
+      style={{ paddingTop: 'var(--safe-top)' }}
+    >
       <nav className="mx-auto flex w-full max-w-2xl items-stretch">
         {TABS.map((tab) => {
           const active = pathname.startsWith(tab.href)

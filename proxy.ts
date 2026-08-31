@@ -7,7 +7,10 @@ import { createServerClient } from '@supabase/ssr'
  * 未ログインのアクセスを /login に送る楽観的なガードを行う。
  * 本来の認可はページ側の getUser() と DB の RLS が担保する。
  */
-const PUBLIC_PATHS = ['/login', '/auth']
+// 認証なしで配信するパス。
+// manifest はブラウザがログイン前に取りに来るので、ここに入れないと
+// ログイン画面の HTML が返り、ホーム画面に追加してもアプリ名もアイコンも付かない。
+const PUBLIC_PATHS = ['/login', '/auth', '/manifest.webmanifest']
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })

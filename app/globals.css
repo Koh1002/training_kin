@@ -43,6 +43,17 @@ html {
   color-scheme: light dark;
 }
 
+/*
+ * ノッチ／ホームインジケータの領域。
+ * env() を各所に直接書かず変数に一段かませているのは、
+ * ヘッドレスブラウザでは env() が常に 0 になり、対応できているか確認できないため。
+ * 変数にしておけば実機相当の値を流し込んで再現できる。
+ */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
