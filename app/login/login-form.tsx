@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   sendMagicLink,
+  verifyMagicLinkUrl,
   verifyOtpCode,
   type LoginState,
   type VerifyState,
@@ -22,6 +23,7 @@ const initialVerify: VerifyState = { status: 'idle' }
 export function LoginForm({ next }: { next?: string }) {
   const [sendState, sendAction, sending] = useActionState(sendMagicLink, initialSend)
   const [verifyState, verifyAction, verifying] = useActionState(verifyOtpCode, initialVerify)
+  const [linkState, linkAction, verifyingLink] = useActionState(verifyMagicLinkUrl, initialVerify)
   const [email, setEmail] = useState('')
 
   // 「別のアドレスでやり直す」でメール入力に戻す。
@@ -67,7 +69,7 @@ export function LoginForm({ next }: { next?: string }) {
               className="field tabular h-14 text-center text-2xl tracking-[0.4em]"
             />
             <p className="text-xs text-muted">
-              メールのリンクを開いてもログインできます。うまく開けないときはこちらを使ってください。
+              本文に6桁のコードが載っている場合は、こちらが最短です。
             </p>
           </div>
 
@@ -78,12 +80,54 @@ export function LoginForm({ next }: { next?: string }) {
           {verifyState.message ? (
             <p
               role="alert"
-              className="rounded-app border border-red-500/30 border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+              className="rounded-app border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
             >
               {verifyState.message}
             </p>
           ) : null}
         </form>
+
+        {/*
+          リンクを貼り付けて入る道。
+          リンクの戻り先が壊れていると開いても何も起きないが、リンク自体には
+          token が入っているので、戻り先を経由せずここで検証すれば入れる。
+          Supabase はメールテンプレートの編集を独自 SMTP の設定とセットにしているため、
+          SMTP を用意できない環境では本文にコードが載らない。そこでの唯一の道になる。
+        */}
+        <div className="space-y-3 border-t border-border pt-4">
+          <div>
+            <h2 className="text-sm font-medium">コードが本文に無いとき</h2>
+            <p className="mt-1 text-xs text-muted">
+              メールのボタンを長押し（PC なら右クリック）してリンクのアドレスをコピーし、
+              ここに貼り付けてください。リンクを開いても何も起きない場合でも入れます。
+            </p>
+          </div>
+
+          <form action={linkAction} className="space-y-3">
+            {next ? <input type="hidden" name="next" value={next} /> : null}
+            <input
+              name="url"
+              type="url"
+              required
+              inputMode="url"
+              autoComplete="off"
+              placeholder="https://….supabase.co/auth/v1/verify?token=…"
+              className="field text-[13px]"
+            />
+            <Button type="submit" variant="secondary" size="lg" full disabled={verifyingLink}>
+              {verifyingLink ? '確認中…' : 'リンクでログイン'}
+            </Button>
+
+            {linkState.message ? (
+              <p
+                role="alert"
+                className="rounded-app border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+              >
+                {linkState.message}
+              </p>
+            ) : null}
+          </form>
+        </div>
 
         <button
           type="button"
@@ -124,7 +168,7 @@ export function LoginForm({ next }: { next?: string }) {
       {sendState.status === 'error' && sendState.message ? (
         <p
           role="alert"
-          className="rounded-app border border-red-500/30 border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+          className="rounded-app border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
         >
           {sendState.message}
         </p>

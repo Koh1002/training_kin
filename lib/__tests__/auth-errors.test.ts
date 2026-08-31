@@ -17,7 +17,7 @@ describe('describeSendError', () => {
     // 「6桁コードが使えます」と言い切ると、届いていない人を袋小路に送り込む。
     const info = describeSendError(undefined, 429, 'email rate limit exceeded')
     expect(info.hint).toBeDefined()
-    expect(info.hint).toContain('{{ .Token }}')
+    expect(info.hint).toContain('貼り付け')
     expect(info.hint).toContain('1時間')
   })
 
@@ -64,8 +64,10 @@ describe('describeVerifyError', () => {
     expect(describeVerifyError('otp_expired')).toContain('送り直して')
   })
 
-  it('コードログインが無効ならテンプレートの設定を示す', () => {
-    expect(describeVerifyError('otp_disabled')).toContain('{{ .Token }}')
+  it('コードログインが無効なら、リンクを貼り付ける道を示す', () => {
+    // テンプレートの編集には独自 SMTP が要る。「{{ .Token }} を足してください」
+    // としか言わないと、SMTP を用意できない環境では詰んでしまう。
+    expect(describeVerifyError('otp_disabled')).toContain('貼り付け')
   })
 
   it('試行過多は待つよう促す', () => {

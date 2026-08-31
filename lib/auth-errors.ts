@@ -42,8 +42,8 @@ export function describeSendError(
         'メールの送信上限に達しました。すでに届いているメールがまだ使えます。' +
         '本文のリンクを開くか、6桁コードがあれば下に入力してください。',
       hint:
-        'コードが本文に無い場合は、Supabase の Authentication > Emails > Magic Link に ' +
-        '{{ .Token }} を追加してください。新しく送れるようになるまでは1時間ほどかかります' +
+        'コードが本文に無い場合は、下の「コードが本文に無いとき」からリンクを貼り付けて' +
+        'ログインしてください。新しく送れるようになるまでは1時間ほどかかります' +
         '（内蔵のメール送信は1時間あたり2通まで）。',
       canUseExistingCode: true,
     }
@@ -87,7 +87,9 @@ export function describeVerifyError(code: string | undefined, status?: number): 
     case 'otp_expired':
       return 'コードが違うか、有効期限が切れています。もう一度送り直してください。'
     case 'otp_disabled':
-      return 'コードでのログインが有効になっていません。Supabase の Magic Link テンプレートに {{ .Token }} を追加してください。'
+      // テンプレートの編集には独自 SMTP が要るので、「{{ .Token }} を足してください」
+      // だけでは詰む環境がある。リンクを貼り付ける道を案内する。
+      return 'コードでのログインが有効になっていません。下の「コードが本文に無いとき」からリンクを貼り付けてください。'
     case 'over_request_rate_limit':
       return '試行回数が多すぎます。少し待ってからもう一度お試しください。'
     default:

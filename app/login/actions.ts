@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { describeSendError, describeVerifyError } from '@/lib/auth-errors'
+import { parseMagicLink } from '@/lib/auth-link'
 import { safeDestination } from '@/lib/safe-redirect'
 import { resolveOrigin } from '@/lib/site-origin'
 import { createClient } from '@/lib/supabase/server'
@@ -89,7 +90,10 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   return {
     status: 'sent',
     email: parsed.data.email,
-    message: `${parsed.data.email} にログイン用のリンクとコードを送りました。`,
+    // 「コードを送りました」とは書かない。テンプレートに {{ .Token }} が無ければ
+    // コードは本文に入らず、その編集には独自 SMTP が要る。届かないものを
+    // 届いたことにすると、探して見つからず詰まる。
+    message: `${parsed.data.email} にログイン用のメールを送りました。`,
     // 戻り先を画面に出す。「メールのリンクが localhost に飛ぶ」とき、原因が
     // アプリ側（送っている値そのものが localhost）なのか Supabase 側
     // （redirect_to が Redirect URLs に無く Site URL に差し替えられた）なのかは、
@@ -137,5 +141,60 @@ export async function verifyOtpCode(_prev: VerifyState, formData: FormData): Pro
 
   // 成功したら遷移する。redirect() は例外を投げて制御を返さないので、
   // この後に到達するコードは無い。
+  redirect(safeDestination(parsed.data.next))
+}
+
+const linkSchema = z.object({
+  url: z.string().trim().min(1, { message: 'リンクを貼り付けてください' }),
+  next: z.string().optional(),
+})
+
+/**
+ * メールのリンクを貼り付けてログインする。
+ *
+ * リンクの戻り先が壊れていると、開いても何も起きないか localhost に飛んで終わる。
+ * ただしリンクそのものには token が入っているので、戻り先を経由せずここで検証すれば
+ * 入れる。テンプレートを編集できない（Supabase はメールテンプレートの編集を
+ * 独自 SMTP の設定とセットにしている）環境では、6 桁コードが本文に入らないため
+ * これが最後の手段になる。
+ */
+export async function verifyMagicLinkUrl(
+  _prev: VerifyState,
+  formData: FormData,
+): Promise<VerifyState> {
+  const parsed = linkSchema.safeParse({
+    url: formData.get('url'),
+    next: formData.get('next') ?? undefined,
+  })
+
+  if (!parsed.success) {
+    return { status: 'error', message: parsed.error.issues[0]?.message ?? '入力を確認してください' }
+  }
+
+  const link = parseMagicLink(parsed.data.url)
+  if (!link) {
+    return {
+      status: 'error',
+      message:
+        'リンクとして読み取れませんでした。メール本文のボタンを長押し（右クリック）して、'
+        + 'リンクのアドレスをそのままコピーしてください。',
+    }
+  }
+
+  const supabase = await createClient()
+  const { error } =
+    link.kind === 'token'
+      ? await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type })
+      : await supabase.auth.exchangeCodeForSession(link.code)
+
+  if (error) {
+    return {
+      status: 'error',
+      message:
+        'このリンクは使えませんでした。すでに開いたか、有効期限が切れています。'
+        + 'メールを送り直して、届いた新しいリンクを貼り付けてください。',
+    }
+  }
+
   redirect(safeDestination(parsed.data.next))
 }
