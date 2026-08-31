@@ -79,7 +79,12 @@ soreness(筋群, 日) = clamp01( Σ  その日の筋群負荷 / 基準値 × カ
      ここへフォールバックし、スマホから開いて「サーバが見つかりません」になる。
    - **Redirect URLs** — `http://localhost:3000/auth/callback` と
      本番の `https://<your-app>.vercel.app/auth/callback` を追加する。
-5. Authentication > Email Templates > **Magic Link** に `{{ .Token }}` を足す。
+5. **独自の SMTP を設定する**（Project Settings > Authentication > SMTP Settings）。
+   Supabase の組み込みメール送信は**共有の検証用サービス**で、**1時間あたり数通**しか
+   送れません。少し試すだけで `email rate limit exceeded` に当たり、実用になりません。
+   Resend / SendGrid / Amazon SES などを設定してください。設定後は
+   Authentication > Rate Limits で上限も引き上げられます。
+6. Authentication > Email Templates > **Magic Link** に `{{ .Token }}` を足す。
    既定のテンプレートはリンクだけで、**これを足さないと 6 桁コードが届かない**。
    本文の最後にこんな行を足せばよい:
 

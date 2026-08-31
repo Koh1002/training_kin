@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
+import { describeSendError, describeVerifyError } from '@/lib/auth-errors'
 import { safeDestination } from '@/lib/safe-redirect'
 import { createClient } from '@/lib/supabase/server'
 
@@ -25,8 +26,10 @@ const emailSchema = z.object({
 
 export type LoginState =
   | { status: 'idle' }
-  | { status: 'sent'; email: string; message: string }
-  | { status: 'error'; message: string; email?: string }
+  // tone は通知の色。送信上限のときも入力欄までは進めるので、
+  // 「送れた」と「送れなかったが手元のコードで進める」を色で区別する。
+  | { status: 'sent'; email: string; message: string; tone: 'info' | 'warning' }
+  | { status: 'error'; message: string }
 
 export async function sendMagicLink(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const parsed = emailSchema.safeParse({
@@ -58,13 +61,28 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   })
 
   if (error) {
-    return { status: 'error', message: `送信に失敗しました: ${error.message}`, email: parsed.data.email }
+    const info = describeSendError(error.code, error.message)
+
+    // 送信上限に当たったということは、直前のメールが届いているということでもある。
+    // そのコードがまだ有効な可能性が高いので、入力欄まで進めて手元のコードを使わせる。
+    // ここで止めると、使えるコードを持ったまま足止めすることになる。
+    if (info.canUseExistingCode) {
+      return {
+        status: 'sent',
+        email: parsed.data.email,
+        message: info.message,
+        tone: 'warning',
+      }
+    }
+
+    return { status: 'error', message: info.message }
   }
 
   return {
     status: 'sent',
     email: parsed.data.email,
     message: `${parsed.data.email} にログイン用のリンクとコードを送りました。`,
+    tone: 'info',
   }
 }
 
@@ -100,10 +118,7 @@ export async function verifyOtpCode(_prev: VerifyState, formData: FormData): Pro
   })
 
   if (error) {
-    return {
-      status: 'error',
-      message: 'コードが違うか、有効期限が切れています。もう一度送り直してください。',
-    }
+    return { status: 'error', message: describeVerifyError(error.code) }
   }
 
   // 成功したら遷移する。redirect() は例外を投げて制御を返さないので、

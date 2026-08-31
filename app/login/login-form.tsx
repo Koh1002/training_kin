@@ -34,7 +34,11 @@ export function LoginForm({ next }: { next?: string }) {
       <div className="space-y-4">
         <p
           role="status"
-          className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400"
+          className={`rounded-lg px-3 py-2 text-sm ${
+            sendState.tone === 'warning'
+              ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
+              : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+          }`}
         >
           {sendState.message}
         </p>
