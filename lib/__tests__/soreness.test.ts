@@ -6,10 +6,20 @@ import {
   buildReferences,
   buildSorenessMap,
   matchCurvePreset,
+  sorenessContributions,
   sorenessLabel,
   sortedSoreness,
   type MuscleVolumeByDate,
 } from '@/lib/workout/soreness'
+import { MUSCLE_CODES } from '@/lib/muscles'
+
+/** 全部位に同じ基準値を置く。個々の部位の基準は別のテストで確かめる */
+function emptyReferences() {
+  return Object.fromEntries(MUSCLE_CODES.map((c) => [c, FALLBACK_REFERENCE_KG])) as Record<
+    (typeof MUSCLE_CODES)[number],
+    number
+  >
+}
 
 /** 基準値ちょうどの負荷を入れて、減衰カーブの値がそのまま出るようにする */
 function historyAt(date: string, volumeKg: number): MuscleVolumeByDate {
@@ -127,5 +137,66 @@ describe('matchCurvePreset', () => {
     expect(matchCurvePreset(DEFAULT_SORENESS_CURVE)).toBe('same_day_peak')
     expect(matchCurvePreset(SORENESS_CURVES.delayed_peak)).toBe('delayed_peak')
     expect(matchCurvePreset([0.9, 0.1])).toBeNull()
+  })
+})
+
+describe('sorenessContributions', () => {
+  const history: MuscleVolumeByDate = new Map([
+    ['2026-09-01', { chest_mid: 1200, lat: 400 }],
+    ['2026-08-31', { chest_mid: 900 }],
+    ['2026-08-30', { chest_mid: 600 }],
+    // カーブ（3日）の外。効いていないはず
+    ['2026-08-29', { chest_mid: 5000 }],
+  ])
+  const references = { ...emptyReferences(), chest_mid: 2000, lat: 2000 }
+
+  it('合計が buildSorenessMap と一致する', () => {
+    // ここが崩れると、画面に出ている強度と内訳の合計が食い違う。
+    // 色の根拠として読ませる以上、これは守らなければならない。
+    const contributions = sorenessContributions('2026-09-01', history, { references })
+    const map = buildSorenessMap('2026-09-01', history, { references })
+
+    for (const [code, list] of Object.entries(contributions)) {
+      const total = list.reduce((sum, c) => sum + c.value, 0)
+      expect(map[code as keyof typeof map]).toBeCloseTo(Math.min(1, total), 10)
+    }
+    // 片方にしか無い部位が生まれていないこと
+    expect(Object.keys(contributions).sort()).toEqual(Object.keys(map).sort())
+  })
+
+  it('カーブの範囲外の日は含めない', () => {
+    const list = sorenessContributions('2026-09-01', history, { references }).chest_mid ?? []
+    expect(list.map((c) => c.date)).toEqual(['2026-09-01', '2026-08-31', '2026-08-30'])
+  })
+
+  it('経過日数と負荷をそのまま持つ', () => {
+    const list = sorenessContributions('2026-09-01', history, { references }).chest_mid ?? []
+    expect(list.map((c) => [c.daysAgo, c.volumeKg])).toEqual([
+      [0, 1200],
+      [1, 900],
+      [2, 600],
+    ])
+  })
+
+  it('新しい日が先に並ぶ', () => {
+    const list = sorenessContributions('2026-09-01', history, { references }).chest_mid ?? []
+    for (let i = 1; i < list.length; i++) {
+      expect(list[i - 1].daysAgo).toBeLessThan(list[i].daysAgo)
+    }
+  })
+
+  it('その日ぶんの寄与は 負荷 / 基準 × カーブ', () => {
+    const list = sorenessContributions('2026-09-01', history, {
+      references,
+      curve: [1, 0.5, 0.25],
+    }).chest_mid ?? []
+    expect(list[0].value).toBeCloseTo((1200 / 2000) * 1)
+    expect(list[1].value).toBeCloseTo((900 / 2000) * 0.5)
+    expect(list[2].value).toBeCloseTo((600 / 2000) * 0.25)
+  })
+
+  it('鍛えていない部位は現れない', () => {
+    const contributions = sorenessContributions('2026-09-01', history, { references })
+    expect(contributions.quad).toBeUndefined()
   })
 })

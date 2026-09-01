@@ -99,17 +99,43 @@ export type SorenessMap = Partial<Record<MuscleCode, number>>
  *
  * 複数日の刺激は加算されるので、連日同じ部位を叩けば濃く残る。
  */
-export function buildSorenessMap(
+/** いまの筋肉痛に、ある日のトレーニングがどれだけ効いているか。 */
+export type SorenessContribution = {
+  date: DateString
+  /** 何日前のトレーニングか。0 = 当日 */
+  daysAgo: number
+  /** その日のこの部位の負荷 */
+  volumeKg: number
+  /** その日ぶんの寄与。1 で頭打ちにする前の生の値 */
+  value: number
+}
+
+export type SorenessOptions = {
+  curve?: readonly number[]
+  references?: Record<MuscleCode, number>
+}
+
+/**
+ * 部位ごとに「どの日のトレーニングが、いまの痛みにどれだけ効いているか」を返す。
+ *
+ * 強度そのもの（buildSorenessMap）はこれの合計として定義してある。
+ * **同じ計算を 2 つ書かない。** 別々に実装すると、カーブや基準値を変えたときに
+ * 片方だけ古くなり、画面に出ている強度と内訳の合計が食い違う。
+ *
+ * 新しい日が先。いま効いている順に読める。
+ */
+export function sorenessContributions(
   onDate: DateString,
   history: MuscleVolumeByDate,
-  options: { curve?: readonly number[]; references?: Record<MuscleCode, number> } = {},
-): SorenessMap {
+  options: SorenessOptions = {},
+): Partial<Record<MuscleCode, SorenessContribution[]>> {
   const curve = options.curve?.length ? options.curve : DEFAULT_SORENESS_CURVE
   const references = options.references ?? buildReferences(history)
 
-  const out: SorenessMap = {}
+  const out: Partial<Record<MuscleCode, SorenessContribution[]>> = {}
   for (const [date, perMuscle] of history) {
     const elapsed = daysBetween(onDate, date)
+    // 未来の日と、カーブが尽きた日は効いていない
     if (elapsed < 0 || elapsed >= curve.length) continue
     const weight = curve[elapsed]
     if (weight <= 0) continue
@@ -118,12 +144,30 @@ export function buildSorenessMap(
       const volume = perMuscle[code]
       if (!volume || volume <= 0) continue
       const ref = references[code] || FALLBACK_REFERENCE_KG
-      out[code] = (out[code] ?? 0) + (volume / ref) * weight
+      ;(out[code] ??= []).push({
+        date,
+        daysAgo: elapsed,
+        volumeKg: volume,
+        value: (volume / ref) * weight,
+      })
     }
   }
 
-  for (const code of Object.keys(out) as MuscleCode[]) {
-    out[code] = Math.min(1, out[code]!)
+  for (const list of Object.values(out)) list.sort((a, b) => a.daysAgo - b.daysAgo)
+  return out
+}
+
+export function buildSorenessMap(
+  onDate: DateString,
+  history: MuscleVolumeByDate,
+  options: SorenessOptions = {},
+): SorenessMap {
+  const contributions = sorenessContributions(onDate, history, options)
+
+  const out: SorenessMap = {}
+  for (const [code, list] of Object.entries(contributions) as [MuscleCode, SorenessContribution[]][]) {
+    const total = list.reduce((sum, c) => sum + c.value, 0)
+    out[code] = Math.min(1, total)
   }
   return out
 }

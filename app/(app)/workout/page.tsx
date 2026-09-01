@@ -19,7 +19,12 @@ import {
   getSession,
   getSetsForDate,
 } from '@/lib/workout/queries'
-import { buildReferences, buildSorenessMap, sortedSoreness } from '@/lib/workout/soreness'
+import {
+  buildReferences,
+  buildSorenessMap,
+  sorenessContributions,
+  sortedSoreness,
+} from '@/lib/workout/soreness'
 import { describeSet, effortScore, formatVolume } from '@/lib/workout/volume'
 import { WORKOUT_NAV } from './nav'
 import { clearRestDay, deleteSet, markRestDay } from './actions'
@@ -58,11 +63,15 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
   const todayMuscleVolumes = history.get(date) ?? {}
   const stimulus = normalizeVolumes(todayMuscleVolumes)
 
-  // 「筋肉痛」は当日を含む直近3日ぶんを減衰カーブで重ねたもの
-  const soreness = buildSorenessMap(date, history, {
+  // 「筋肉痛」は当日を含む直近3日ぶんを減衰カーブで重ねたもの。
+  // 強度と内訳は同じ引数で作る。別々に組み立てると、片方だけ設定が古くなって
+  // 画面の色と内訳の合計が食い違う。
+  const sorenessOptions = {
     curve: profile?.soreness_curve,
     references: buildReferences(history),
-  })
+  }
+  const soreness = buildSorenessMap(date, history, sorenessOptions)
+  const sorenessDetail = sorenessContributions(date, history, sorenessOptions)
 
   // 部位タップ時に出す内訳（どの種目がその部位を叩いたか）
   const breakdown: Partial<Record<MuscleCode, MuscleBreakdown>> = {}
@@ -119,7 +128,12 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
           >
             効いている部位
           </CardTitle>
-          <BodyMapPanel stimulus={stimulus} soreness={soreness} breakdown={breakdown} />
+          <BodyMapPanel
+            stimulus={stimulus}
+            soreness={soreness}
+            breakdown={breakdown}
+            sorenessDetail={sorenessDetail}
+          />
         </Card>
 
         <Card>
