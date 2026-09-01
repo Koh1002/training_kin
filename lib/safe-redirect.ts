@@ -13,8 +13,7 @@ export const DEFAULT_DESTINATION = '/workout'
  *     外部ホストに飛んでしまう）
  *   - `\` を含まないこと（一部のブラウザが `/\evil.com` を `//evil.com` として扱う）
  *
- * マジックリンクの戻り先（app/auth/callback/route.ts）と、
- * 6 桁コードでのログイン（app/login/actions.ts）の両方から使う。
+ * ログインと新規登録（app/login/actions.ts）の両方から使う。
  * 判定を 2 箇所で書き分けると、片方だけ緩い状態に気づけない。
  */
 export function safeDestination(next: string | null | undefined): string {

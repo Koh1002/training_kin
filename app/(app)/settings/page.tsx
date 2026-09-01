@@ -4,7 +4,7 @@ import { getGoals } from '@/lib/english/queries'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { getProfile } from '@/lib/workout/queries'
 import { matchCurvePreset } from '@/lib/workout/soreness'
-import { GoalsForm, ProfileForm } from './settings-forms'
+import { GoalsForm, ProfileForm, PasswordForm } from './settings-forms'
 import { signOut } from './actions'
 
 export default async function SettingsPage() {
@@ -33,6 +33,11 @@ export default async function SettingsPage() {
       <Card>
         <CardTitle>アカウント</CardTitle>
         <p className="mb-3 text-sm text-muted">{user.email}</p>
+
+        <div className="mb-4 border-t border-border pt-4">
+          <PasswordForm />
+        </div>
+
         <form action={signOut}>
           <button type="submit" className="rounded-app-lg border border-border px-4 py-2 text-sm">
             ログアウト

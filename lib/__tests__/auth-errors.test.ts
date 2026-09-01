@@ -1,114 +1,58 @@
 import { describe, expect, it } from 'vitest'
-import {
-  describeCallbackError,
-  describeSendError,
-  describeVerifyError,
-} from '@/lib/auth-errors'
+import { describePasswordError, SIGNUP_NEEDS_CONFIRMATION } from '@/lib/auth-errors'
 
-describe('describeSendError', () => {
-  it('送信上限のときは、届いているメールで進めると伝える', () => {
-    const info = describeSendError('over_email_send_rate_limit', 429, 'email rate limit exceeded')
-    expect(info.canUseExistingCode).toBe(true)
-    expect(info.message).toContain('すでに届いている')
-    // リンクとコードの両方を案内する。リンクが生きていればコードは要らない。
-    expect(info.message).toContain('リンク')
-    // Supabase の英語メッセージをそのまま出さない
-    expect(info.message).not.toContain('rate limit exceeded')
+describe('describePasswordError', () => {
+  it('資格情報の誤りをそう言う', () => {
+    expect(describePasswordError('invalid_credentials', 400, 'Invalid login credentials')).toBe(
+      'メールアドレスかパスワードが違います。',
+    )
   })
 
-  it('送信上限の文面はコードが届いていると断定しない', () => {
-    // テンプレートに {{ .Token }} が無ければコードは本文に入らない。
-    // 「6桁コードが使えます」と言い切ると、届いていない人を袋小路に送り込む。
-    const info = describeSendError(undefined, 429, 'email rate limit exceeded')
-    expect(info.hint).toBeDefined()
-    expect(info.hint).toContain('貼り付け')
-    expect(info.hint).toContain('1時間')
+  it('確認待ちのときは、どこを切ればいいか名指しする', () => {
+    // これが出るのは Supabase の「Confirm email」が有効なまま。放っておくと
+    // メールの確認待ちになり、マジックリンクのときと同じ詰まり方をする。
+    const message = describePasswordError('email_not_confirmed', 400, 'Email not confirmed')
+    expect(message).toContain('Confirm email')
+    expect(message).toContain('Providers')
   })
 
-  it('code が来なくても 429 なら送信上限として扱う', () => {
+  it('登録済みならログインの方へ誘導する', () => {
+    expect(describePasswordError('user_already_exists', 422, 'User already registered')).toContain(
+      'ログイン',
+    )
+  })
+
+  it('短すぎるパスワードは文字数を示す', () => {
+    expect(describePasswordError('weak_password', 422, 'Password is too short')).toContain('8文字')
+  })
+
+  it('新規登録が無効ならどこで有効にするか示す', () => {
+    expect(describePasswordError('signup_disabled', 422, 'Signups not allowed')).toContain(
+      'Providers',
+    )
+  })
+
+  it('code が来なくても 429 ならレート制限として扱う', () => {
     // 実際に本番で起きた。auth-js はレスポンス本文の形によっては code を拾えず、
     // 生の英語メッセージが出てしまっていた。ステータスは必ず入るのでそれで判定する。
-    const info = describeSendError(undefined, 429, 'email rate limit exceeded')
-    expect(info.canUseExistingCode).toBe(true)
-    expect(info.message).toContain('すでに届いている')
-    expect(info.message).not.toContain('rate limit exceeded')
+    const message = describePasswordError(undefined, 429, 'too many requests')
+    expect(message).toContain('待って')
+    expect(message).not.toContain('too many requests')
   })
 
-  it('メール認証が無効なら、どこを直せばいいか示す', () => {
-    const info = describeSendError('email_provider_disabled', 422, 'signups not allowed')
-    expect(info.canUseExistingCode).toBe(false)
-    expect(info.message).toContain('Providers')
-  })
-
-  it('その他のレート制限は待つよう促すが、コードでは進めない', () => {
-    const info = describeSendError('over_request_rate_limit', 400, 'too many requests')
-    expect(info.canUseExistingCode).toBe(false)
-    expect(info.message).toContain('待って')
-  })
-
-  it('アドレスが不正なら入力を確認させる', () => {
-    expect(describeSendError('email_address_invalid', 400, 'x').message).toContain('確認')
-  })
-
-  it('未知のコードは元のメッセージを添えて返す', () => {
-    const info = describeSendError('something_new', 400, 'boom')
-    expect(info.canUseExistingCode).toBe(false)
-    expect(info.message).toBe('送信に失敗しました: boom')
-  })
-
-  it('コードが無い場合（ネットワーク断など）もフォールバックする', () => {
-    expect(describeSendError(undefined, undefined, 'fetch failed').message).toBe(
-      '送信に失敗しました: fetch failed',
+  it('知らないコードでも英語をそのまま出さない形にする', () => {
+    // 完全には隠せないが、日本語の前置きを付けて何の話か分かるようにする
+    expect(describePasswordError('something_new', 400, 'Some new failure')).toContain(
+      'ログインできませんでした',
     )
   })
 })
 
-describe('describeVerifyError', () => {
-  it('期限切れは送り直しを促す', () => {
-    expect(describeVerifyError('otp_expired')).toContain('送り直して')
-  })
-
-  it('コードログインが無効なら、リンクを貼り付ける道を示す', () => {
-    // テンプレートの編集には独自 SMTP が要る。「{{ .Token }} を足してください」
-    // としか言わないと、SMTP を用意できない環境では詰んでしまう。
-    expect(describeVerifyError('otp_disabled')).toContain('貼り付け')
-  })
-
-  it('試行過多は待つよう促す', () => {
-    expect(describeVerifyError('over_request_rate_limit')).toContain('待って')
-    // 検証側も code が無くても 429 なら拾う
-    expect(describeVerifyError(undefined, 429)).toContain('待って')
-  })
-
-  it('未知のコードでも日本語で返す', () => {
-    expect(describeVerifyError(undefined)).toContain('コードが違うか')
-  })
-})
-
-describe('describeCallbackError', () => {
-  it('リンクに情報が無かった場合を説明する', () => {
-    expect(describeCallbackError('missing_code')).toContain('送り直して')
-  })
-
-  it('期限切れ・使用済みをそう説明する', () => {
-    // 以前はこれを読まず「リンクにログイン情報が入っていませんでした」と
-    // 見当違いのことを言っていた
-    expect(describeCallbackError('otp_expired')).toContain('期限切れ')
-    expect(describeCallbackError('access_denied')).toContain('期限切れ')
-  })
-
-  it('交換の失敗は、まず古いメールを疑わせる', () => {
-    const message = describeCallbackError('exchange_failed') ?? ''
-    // auth-js はログインの途中の値を「最後に送ったぶん」しか保持しないので、
-    // 2 回送って古い方を開くと同じブラウザでも失敗する。こちらの方が起きやすい。
-    expect(message).toContain('いちばん新しい')
-    expect(message.indexOf('いちばん新しい')).toBeLessThan(message.indexOf('別のブラウザ'))
-    expect(message).toContain('別のブラウザ')
-  })
-
-  it('知らないコードでは何も出さない', () => {
-    // 当てずっぽうの説明を出すと、間違った方向に時間を使わせる
-    expect(describeCallbackError('something_else')).toBeNull()
-    expect(describeCallbackError(undefined)).toBeNull()
+describe('SIGNUP_NEEDS_CONFIRMATION', () => {
+  it('登録できたのに入れない理由と、直す場所を書く', () => {
+    // エラー無し・セッション無しで返るので、ここを見ないと
+    // 「登録できたように見えて入れない」という一番分かりにくい形になる
+    expect(SIGNUP_NEEDS_CONFIRMATION).toContain('Confirm email')
+    expect(SIGNUP_NEEDS_CONFIRMATION).toContain('確認待ち')
   })
 })

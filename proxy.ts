@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { authCallbackParams } from '@/lib/auth-callback-params'
 import { missingSupabaseEnv } from '@/lib/supabase/env'
 
 /**
@@ -12,7 +11,7 @@ import { missingSupabaseEnv } from '@/lib/supabase/env'
 // 認証なしで配信するパス。
 // manifest はブラウザがログイン前に取りに来るので、ここに入れないと
 // ログイン画面の HTML が返り、ホーム画面に追加してもアプリ名もアイコンも付かない。
-const PUBLIC_PATHS = ['/login', '/auth', '/manifest.webmanifest']
+const PUBLIC_PATHS = ['/login', '/manifest.webmanifest']
 
 export async function proxy(request: NextRequest) {
   // 環境変数が無いまま Supabase クライアントを作ると、ライブラリの奥で落ちて
@@ -71,19 +70,6 @@ export async function proxy(request: NextRequest) {
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
-  // ログインの結果が /auth/callback 以外に着地したら、そこへ回す。
-  // Supabase は戻り先が Redirect URLs に一致しないと Site URL に差し替えるので、
-  // コードやエラーがサイトのルートに落ちることがある。以前はそれを /login に
-  // 飛ばして捨てていた（URL に残っているのに、見る場所が無かった）。
-  //
-  // 公開パスは対象外。ここを外すと /login?error=… 自体がコールバックに見え、
-  // /auth/callback がまた /login?error=… を返して無限に往復する。
-  if (!isPublic && authCallbackParams(request.nextUrl.searchParams)) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/callback'
-    return redirectKeeping(url)
-  }
-
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
@@ -94,9 +80,6 @@ export async function proxy(request: NextRequest) {
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/workout'
-    // ログインに失敗して戻ってきた場合は、その理由を読ませてから追い出す。
-    // ここで search ごと捨てると、失敗の説明が誰にも見えない。
-    if (request.nextUrl.searchParams.has('error')) return response
     url.search = ''
     return redirectKeeping(url)
   }

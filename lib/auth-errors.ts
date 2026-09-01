@@ -1,7 +1,7 @@
 /**
  * Supabase の認証エラーを、日本語の文言と「次に何ができるか」に変換する。
  *
- * 分岐には `error.code`（`over_email_send_rate_limit` など）と `error.status` を使い、
+ * 分岐には `error.code`（`invalid_credentials` など）と `error.status` を使い、
  * `error.message` の文字列一致はしない。メッセージの文言は Supabase 側の都合で変わる。
  *
  * ただし `error.code` は**来ないことがある**。@supabase/auth-js はレスポンス本文の
@@ -11,126 +11,54 @@
  * レート制限として扱う。
  */
 
-export type AuthErrorInfo = {
-  message: string
-  /** 設定の直し方など、本文より一段小さく添える補足。 */
-  hint?: string
-  /**
-   * 送信そのものは失敗したが、**すでに届いているメールで先に進める**場合に true。
-   * 送信上限はまさにこれで、直前のメールが届いているからこそ上限に当たっている。
-   * ここで赤いエラーを出して止めると、使えるメールを持っているユーザーを足止めしてしまう。
-   */
-  canUseExistingCode: boolean
-}
-
-/** ログイン用メールの送信に失敗したとき。 */
-export function describeSendError(
+/** メールアドレスとパスワードでのログイン／登録が失敗したとき。 */
+export function describePasswordError(
   code: string | undefined,
   status: number | undefined,
   fallbackMessage: string,
-): AuthErrorInfo {
-  // code が来なくても 429 ならレート制限。ここを status に頼るのが要点。
-  const rateLimited = code === 'over_email_send_rate_limit' || status === 429
-
-  if (rateLimited) {
-    // 「6桁コードが届いているはず」と言い切らない。テンプレートに {{ .Token }} が
-    // 無ければコードはそもそも本文に入らず、届いていない人に届いていると言うことになる。
-    // 実際にそれで詰まった。手元にあるメールで試せることを並べ、無かった場合の
-    // 直し方まで書く。
-    return {
-      message:
-        'メールの送信上限に達しました。すでに届いているメールがまだ使えます。' +
-        '本文のリンクを開くか、6桁コードがあれば下に入力してください。',
-      hint:
-        'コードが本文に無い場合は、下の「コードが本文に無いとき」からリンクを貼り付けて' +
-        'ログインしてください。新しく送れるようになるまでは1時間ほどかかります' +
-        '（内蔵のメール送信は1時間あたり2通まで）。',
-      canUseExistingCode: true,
-    }
-  }
-
-  switch (code) {
-    case 'over_request_rate_limit':
-      return {
-        message: 'リクエストが多すぎます。少し待ってからもう一度お試しください。',
-        canUseExistingCode: false,
-      }
-    case 'email_provider_disabled':
-      return {
-        message:
-          'メールでのログインが無効になっています。Supabase の Authentication > Providers で Email を有効にしてください。',
-        canUseExistingCode: false,
-      }
-    case 'email_address_invalid':
-      return {
-        message: 'このメールアドレスは受け付けられませんでした。入力を確認してください。',
-        canUseExistingCode: false,
-      }
-    case 'email_address_not_authorized':
-      return {
-        message:
-          'このメールアドレスへの送信が許可されていません。Supabase の SMTP 設定を確認してください。',
-        canUseExistingCode: false,
-      }
-    default:
-      return { message: `送信に失敗しました: ${fallbackMessage}`, canUseExistingCode: false }
-  }
-}
-
-/** 6桁コードの検証に失敗したとき。 */
-export function describeVerifyError(code: string | undefined, status?: number): string {
+): string {
   if (code === 'over_request_rate_limit' || status === 429) {
     return '試行回数が多すぎます。少し待ってからもう一度お試しください。'
   }
 
   switch (code) {
-    case 'otp_expired':
-      return 'コードが違うか、有効期限が切れています。もう一度送り直してください。'
-    case 'otp_disabled':
-      // テンプレートの編集には独自 SMTP が要るので、「{{ .Token }} を足してください」
-      // だけでは詰む環境がある。リンクを貼り付ける道を案内する。
-      return 'コードでのログインが有効になっていません。下の「コードが本文に無いとき」からリンクを貼り付けてください。'
-    case 'over_request_rate_limit':
-      return '試行回数が多すぎます。少し待ってからもう一度お試しください。'
+    case 'invalid_credentials':
+      return 'メールアドレスかパスワードが違います。'
+
+    case 'email_not_confirmed':
+      // これが出るということは Supabase の「Confirm email」が有効なまま。
+      // そのままだとメールの確認待ちになり、マジックリンクのときと同じ詰まり方をする。
+      // どこを切ればいいかを名指しする。
+      return (
+        'メールアドレスの確認待ちになっています。Supabase の Authentication > Providers > Email で ' +
+        '「Confirm email」を切ってください。'
+      )
+
+    case 'user_already_exists':
+      return 'このメールアドレスは登録済みです。「ログイン」の方をお使いください。'
+
+    case 'weak_password':
+      return 'パスワードが短すぎます。8文字以上にしてください。'
+
+    case 'signup_disabled':
+      return '新規登録が無効になっています。Supabase の Authentication > Providers > Email で有効にしてください。'
+
+    case 'email_address_invalid':
+      return 'このメールアドレスは受け付けられませんでした。入力を確認してください。'
+
     default:
-      return 'コードが違うか、有効期限が切れています。もう一度送り直してください。'
+      return `ログインできませんでした: ${fallbackMessage}`
   }
 }
 
 /**
- * マジックリンクから戻ってきて失敗したときの説明。
+ * 登録はできたのにセッションが返らなかったとき。
  *
- * これまで `/login?error=…` は画面に何も出していなかった。ユーザーからは
- * 「リンクを開いたのに、またメールを送る画面に戻された」としか見えず、
- * 何が起きたのか分からない。実際にその状態で切り分けができなくなった。
- *
- * 知らないコードでは null を返す。当てずっぽうの説明を出すと、間違った方向に
- * 時間を使わせることになる。
+ * これは失敗ではなく**設定の問題**で、「Confirm email」が有効だと Supabase は
+ * 確認メールを送ってセッションを返さない。エラーとして扱わないと、
+ * 登録できたように見えて入れない、という一番分かりにくい形になる。
  */
-export function describeCallbackError(code: string | undefined): string | null {
-  switch (code) {
-    case 'missing_code':
-      return 'リンクにログイン情報が入っていませんでした。メールを送り直してください。'
-
-    // Supabase 側が返す理由。期限切れ・使用済み。
-    case 'otp_expired':
-    case 'access_denied':
-      return 'このリンクは期限切れか、すでに使われています。メールを送り直して、新しいリンクを開いてください。'
-
-    case 'exchange_failed':
-      // 原因は 2 つあり、**古いメールを開いたケースの方が起きやすい**。
-      // auth-js はログインの途中の値を「最後に送ったぶん」でしか保持しないため、
-      // 2 回送って古い方のリンクを開くと、同じブラウザでも失敗する。
-      // 以前はブラウザ違いしか挙げていなかったので、同じブラウザで開き直させ続け、
-      // 直らないまま送信上限だけ減っていく案内になっていた。
-      return (
-        'リンクは受け取りましたが、ログインを完了できませんでした。' +
-        'メールを何通か送っている場合は、いちばん新しいものを開いてください。' +
-        'それでも駄目なら、メールを送ったブラウザとは別のブラウザで開いた可能性があります' +
-        '（メールアプリ内のブラウザで開くと起きます）。'
-      )
-
-    default:
-      return null
-  }
-}
+export const SIGNUP_NEEDS_CONFIRMATION =
+  'アカウントは作成されましたが、メールアドレスの確認待ちになっています。' +
+  'Supabase の Authentication > Providers > Email で「Confirm email」を切ってから、' +
+  'もう一度ログインしてください。'
