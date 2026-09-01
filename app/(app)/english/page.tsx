@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { Card, CardTitle, EmptyState } from '@/components/ui/card'
 import { DateNav } from '@/components/date-nav'
 import { SubNav } from '@/components/sub-nav'
-import { LogForm } from '@/components/english/log-form'
 import { SkillRadar } from '@/components/english/skill-radar'
 import { todayJst, weekStart } from '@/lib/date'
 import {
@@ -159,11 +158,6 @@ export default async function EnglishPage(props: PageProps<'/english'>) {
               ))}
             </ul>
           )}
-        </Card>
-
-        <Card>
-          <CardTitle>学習を記録</CardTitle>
-          <LogForm date={date} activities={activities} defaultSkill={focus} />
         </Card>
       </div>
     </>

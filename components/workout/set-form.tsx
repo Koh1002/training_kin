@@ -28,6 +28,8 @@ type Props = {
   /** 最近使った種目ID（新しい順） */
   recentExerciseIds: string[]
   bodyweightKg: number
+  /** 追加できたときに呼ぶ。シートから使うとき、背後の一覧を取り直すのに使う */
+  onAdded?: () => void
 }
 
 const initialState: ActionState = { ok: false }
@@ -37,7 +39,7 @@ const initialState: ActionState = { ok: false }
  * 「種目を選ぶ → 重量・回数・セットを入れる」の 2 ステップで終わるようにし、
  * 前回の値をあらかじめ入れておくことで、多くの日は数字を触らず追加できる。
  */
-export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodyweightKg }: Props) {
+export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodyweightKg, onAdded }: Props) {
   const [state, formAction, pending] = useActionState(addSet, initialState)
   const [category, setCategory] = useState<ExerciseCategory | 'recent'>('recent')
   const [exerciseId, setExerciseId] = useState<string | null>(null)
@@ -58,7 +60,10 @@ export function SetForm({ date, exercises, lastInputs, recentExerciseIds, bodywe
   const [handledState, setHandledState] = useState(state)
   if (state !== handledState) {
     setHandledState(state)
-    if (state.ok) setExerciseId(null)
+    if (state.ok) {
+      setExerciseId(null)
+      onAdded?.()
+    }
   }
 
   /**
