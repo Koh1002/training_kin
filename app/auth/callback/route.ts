@@ -8,13 +8,12 @@ import { createClient } from '@/lib/supabase/server'
 /**
  * マジックリンクから戻ってきたときのセッション確立。
  *
- * PKCE の `code` と、テンプレートの世代によって使われる `token_hash` の両方を受ける。
- * どちらで来るかは Supabase 側の設定次第で、片方しか見ないと「リンクは開くのに
- * ログインされない」という分かりにくい失敗になる。
+ * 受けるのは PKCE の `code` と、Supabase 側が返すエラーだけ。`token_hash` は
+ * ここでは受けない（理由は lib/auth-callback-params.ts）。貼り付けフォームには残る。
  *
- * ログイン後の行き先は Cookie から取る。かつては戻り先の URL に `?next=…` を
- * 付けていたが、それだと Supabase の Redirect URLs の照合に通らず、戻り先ごと
- * Site URL に差し替えられてここに到達しなかった。詳細は lib/auth-next-cookie.ts。
+ * ログイン後の行き先は Cookie から取る。戻り先の URL に `?next=…` を付けると
+ * Redirect URLs の照合に通らず、戻り先ごと Site URL に差し替えられてここに
+ * 到達しない。詳細は lib/auth-next-cookie.ts。
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl
@@ -33,15 +32,23 @@ export async function GET(request: NextRequest) {
   }
 
   const params = authCallbackParams(searchParams)
+
   if (!params) {
     return redirectTo('/login?error=missing_code')
   }
 
+  // Supabase 側が理由を返しているなら、それをそのまま画面に伝える
+  if (params.kind === 'error') {
+    return redirectTo(`/login?error=${encodeURIComponent(params.code)}`)
+  }
+
   const supabase = await createClient()
-  const { error } =
-    params.kind === 'code'
-      ? await supabase.auth.exchangeCodeForSession(params.code)
-      : await supabase.auth.verifyOtp({ token_hash: params.tokenHash, type: params.type })
+  // セッションの有無をここで見る必要は無い。exchangeCodeForSession は
+  // セッションが無ければ自分でエラーを返す（GoTrueClient.ts の
+  // AuthInvalidTokenResponseError）。到達しない分岐を置くと、起こり得ない状態を
+  // 扱っているように読めてしまう。verifyOtp を呼ぶ貼り付け経路にはこの保証が
+  // 無いので、あちらでは data.session を見ている。
+  const { error } = await supabase.auth.exchangeCodeForSession(params.code)
 
   if (error) {
     return redirectTo('/login?error=exchange_failed')

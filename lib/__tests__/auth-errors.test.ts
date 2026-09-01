@@ -90,11 +90,20 @@ describe('describeCallbackError', () => {
     expect(describeCallbackError('missing_code')).toContain('送り直して')
   })
 
-  it('別ブラウザで開いた可能性と、その回避手段を示す', () => {
-    const message = describeCallbackError('exchange_failed')
+  it('期限切れ・使用済みをそう説明する', () => {
+    // 以前はこれを読まず「リンクにログイン情報が入っていませんでした」と
+    // 見当違いのことを言っていた
+    expect(describeCallbackError('otp_expired')).toContain('期限切れ')
+    expect(describeCallbackError('access_denied')).toContain('期限切れ')
+  })
+
+  it('交換の失敗は、まず古いメールを疑わせる', () => {
+    const message = describeCallbackError('exchange_failed') ?? ''
+    // auth-js はログインの途中の値を「最後に送ったぶん」しか保持しないので、
+    // 2 回送って古い方を開くと同じブラウザでも失敗する。こちらの方が起きやすい。
+    expect(message).toContain('いちばん新しい')
+    expect(message.indexOf('いちばん新しい')).toBeLessThan(message.indexOf('別のブラウザ'))
     expect(message).toContain('別のブラウザ')
-    // 貼り付け欄は PKCE の検証用の値を使わないので、ブラウザが違っても通る
-    expect(message).toContain('貼り付け')
   })
 
   it('知らないコードでは何も出さない', () => {

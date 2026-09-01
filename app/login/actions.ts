@@ -115,6 +115,18 @@ export async function sendMagicLink(_prev: LoginState, formData: FormData): Prom
   }
 }
 
+/**
+ * 預けてある行き先を消す。
+ *
+ * /auth/callback 以外の経路（6 桁コード、貼り付け）は行き先を hidden field で
+ * 受け取るので Cookie は使わないが、消さないと 15 分間残り、次のログインで
+ * 前回の行き先に飛ばされる。
+ */
+async function clearNextCookie() {
+  const cookieStore = await cookies()
+  cookieStore.delete(NEXT_COOKIE)
+}
+
 const codeSchema = z.object({
   email: z.email({ message: 'メールアドレスが不正です' }),
   // Supabase の OTP は 6 桁の数字
@@ -149,6 +161,8 @@ export async function verifyOtpCode(_prev: VerifyState, formData: FormData): Pro
   if (error) {
     return { status: 'error', message: describeVerifyError(error.code, error.status) }
   }
+
+  await clearNextCookie()
 
   // 成功したら遷移する。redirect() は例外を投げて制御を返さないので、
   // この後に到達するコードは無い。
@@ -193,19 +207,31 @@ export async function verifyMagicLinkUrl(
   }
 
   const supabase = await createClient()
-  const { error } =
+  const { data, error } =
     link.kind === 'token'
       ? await supabase.auth.verifyOtp({ token_hash: link.tokenHash, type: link.type })
       : await supabase.auth.exchangeCodeForSession(link.code)
 
-  if (error) {
+  if (error || !data.session) {
+    // 2 つの形で失敗の理由が違う。token（メール本文のリンク）はログインの途中の値を
+    // 使わないので、ブラウザが違っても通る——駄目なら本当に期限切れか使用済み。
+    // code（開いた先のアドレス）は送信したブラウザの、いちばん新しいメールのぶんしか
+    // 使えない。ここを一緒くたにすると原因を取り違えさせる。
     return {
       status: 'error',
       message:
-        'このリンクは使えませんでした。すでに開いたか、有効期限が切れています。'
-        + 'メールを送り直して、届いた新しいリンクを貼り付けてください。',
+        link.kind === 'token'
+          ? 'このリンクは使えませんでした。すでに開いたか、有効期限が切れています。'
+            + 'メールを送り直して、届いた新しいリンクを貼り付けてください。'
+          : 'このアドレスでは入れませんでした。メールを送ったのと同じブラウザで、'
+            + 'いちばん新しいメールのぶんだけが使えます。'
+            + 'メール本文のリンク（supabase.co で始まるもの）を貼ると、この制限がありません。',
     }
   }
+
+  // 行き先は hidden field で受け取っているので、預けてある Cookie は用済み。
+  // 消さずに置くと、次に別経路でログインしたとき前回の行き先に飛ばされる。
+  await clearNextCookie()
 
   redirect(safeDestination(parsed.data.next))
 }
