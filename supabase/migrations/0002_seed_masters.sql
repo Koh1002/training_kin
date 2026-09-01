@@ -128,6 +128,7 @@ from (values
   ('リアレイズ',               '肩うしろ',       'shoulder', 'weight',     null,   true,  9,    10, 3, 220, '{"delt_rear":1.0}'::jsonb),
   ('サイドレイズ（マシン）',   '肩中央部',       'shoulder', 'weight',     null,   true,  9,    10, 3, 230, '{"delt_mid":1.0}'::jsonb),
   ('サイドレイズ（ダンベル）', 'サイドレイズ',   'shoulder', 'weight',     null,   false, 15,   10, 3, 240, '{"delt_mid":1.0,"delt_rear":0.3}'::jsonb),
+  ('フロントレイズ（ダンベル）','肩前ダンベル',   'shoulder', 'weight',     null,   false, 8,    10, 3, 245, '{"delt_front":1.0,"delt_mid":0.3}'::jsonb),
   ('肩フライ',                 '肩フライ',       'shoulder', 'weight',     null,   false, 25,   10, 3, 250, '{"delt_mid":1.0,"delt_rear":0.5}'::jsonb),
   ('チューブ肩',               'チューブ肩',     'shoulder', 'weight',     null,   false, 3.75, 10, 3, 260, '{"delt_mid":0.8,"delt_rear":0.4}'::jsonb),
   -- 腕 ---------------------------------------------------------------------
