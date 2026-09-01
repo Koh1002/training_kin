@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { muscleName, type MuscleCode } from '@/lib/muscles'
 import { legendStops, type MapMode } from '@/lib/workout/color-scale'
-import { sorenessLabel } from '@/lib/workout/soreness'
+import { sorenessLabel, type SorenessContribution } from '@/lib/workout/soreness'
 import { formatVolume } from '@/lib/workout/volume'
 import { BodyFigure } from './body-figure'
 
@@ -20,6 +20,8 @@ type Props = {
   values: Partial<Record<MuscleCode, number>>
   /** タップしたときに出す内訳（刺激モードのみ） */
   breakdown?: Partial<Record<MuscleCode, MuscleBreakdown>>
+  /** 筋肉痛モードの内訳: どの日のトレーニングがいまの痛みに効いているか */
+  sorenessDetail?: Partial<Record<MuscleCode, SorenessContribution[]>>
   /** モード切替タブを出すか */
   showModeToggle?: boolean
 }
@@ -33,11 +35,32 @@ const MODE_LABEL: Record<MapMode, string> = {
  * 人体図。前面と背面を並べ、筋群の強度を色で示す。
  * 色だけに頼らないよう、タップで数値と内訳を出せるようにしている。
  */
-export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle = true }: Props) {
+/** 「2026-08-31」→「8/31」。内訳は 3 日ぶんしか出ないので年は要らない */
+function formatDateShort(date: string): string {
+  const [, month, day] = date.split('-')
+  return `${Number(month)}/${Number(day)}`
+}
+
+function daysAgoLabel(daysAgo: number): string {
+  if (daysAgo === 0) return '（今日）'
+  if (daysAgo === 1) return '（昨日）'
+  return `（${daysAgo}日前）`
+}
+
+export function BodyMap({
+  mode,
+  onModeChange,
+  values,
+  breakdown,
+  sorenessDetail,
+  showModeToggle = true,
+}: Props) {
   const [selected, setSelected] = useState<MuscleCode | null>(null)
 
   const selectedValue = selected ? (values[selected] ?? 0) : 0
   const selectedBreakdown = selected ? breakdown?.[selected] : undefined
+  const selectedContributions = (selected ? sorenessDetail?.[selected] : undefined) ?? []
+  const contributionTotal = selectedContributions.reduce((sum, c) => sum + c.value, 0)
 
   return (
     <div className="space-y-3">
@@ -92,7 +115,47 @@ export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle 
             </span>
           </div>
 
-          {selectedBreakdown && selectedBreakdown.exercises.length > 0 ? (
+          {mode === 'soreness' ? (
+            selectedContributions.length > 0 ? (
+              <ul className="mt-2 space-y-1 text-[13px] text-muted">
+                {selectedContributions.map((c) => (
+                  <li key={c.date} className="flex justify-between gap-2">
+                    <span>
+                      {formatDateShort(c.date)}
+                      <span className="ml-1 text-muted">{daysAgoLabel(c.daysAgo)}</span>
+                    </span>
+                    <span className="tabular">
+                      {formatVolume(c.volumeKg)} → {Math.round(c.value * 100)}%
+                    </span>
+                  </li>
+                ))}
+                {/*
+                  強度は 1 で頭打ちにしている。合計が 100% を超えたとき、
+                  内訳の和と見出しの数字が合わなくなるので、その理由をその場に書く。
+                  黙って食い違わせない。
+                */}
+                {contributionTotal > 1 ? (
+                  <li className="flex justify-between gap-2 border-t border-border pt-1">
+                    <span>合計</span>
+                    <span className="tabular">
+                      {Math.round(contributionTotal * 100)}% → 100% で頭打ち
+                    </span>
+                  </li>
+                ) : null}
+              </ul>
+            ) : (
+              <p className="mt-1 text-[13px] text-muted">
+                {/*
+                  強度が実質 0 のときだけ「無い」と言う。値が付いているのに内訳が
+                  出せていないなら、その事実の方を出す。以前はここを値と無関係に
+                  「ありません」と書いていて、色と真っ向から矛盾していた。
+                */}
+                {selectedValue <= 0.001
+                  ? 'この部位に残っている筋肉痛はありません。'
+                  : '内訳を表示できませんでした。'}
+              </p>
+            )
+          ) : selectedBreakdown && selectedBreakdown.exercises.length > 0 ? (
             <ul className="mt-2 space-y-1 text-[13px] text-muted">
               {selectedBreakdown.exercises.map((ex) => (
                 <li key={ex.name} className="flex justify-between gap-2">
@@ -106,11 +169,7 @@ export function BodyMap({ mode, onModeChange, values, breakdown, showModeToggle 
               </li>
             </ul>
           ) : (
-            <p className="mt-1 text-[13px] text-muted">
-              {mode === 'soreness'
-                ? 'この部位に残っている筋肉痛はありません。'
-                : 'この日はこの部位を鍛えていません。'}
-            </p>
+            <p className="mt-1 text-[13px] text-muted">この日はこの部位を鍛えていません。</p>
           )}
         </div>
       ) : (
