@@ -54,34 +54,51 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // ログイン用の値が /auth/callback 以外に着地したら、そこへ回す。
-  // Supabase は戻り先が Redirect URLs に一致しないと Site URL に差し替えるので、
-  // コードがサイトのルートに落ちることがある。以前はそれを /login に飛ばして
-  // 捨てていた（URL にコードは残っているのに、見る場所が無かった）。
-  // どこに落ちても拾えば、設定と戻り先がずれても症状が出ない。
-  if (pathname !== '/auth/callback') {
-    const callbackParams = authCallbackParams(request.nextUrl.searchParams)
-    if (callbackParams) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/auth/callback'
-      return NextResponse.redirect(url)
+  /*
+   * getUser() はトークンの期限が切れていれば更新する。新しいトークンは setAll 経由で
+   * `response` に溜まっているので、**リダイレクトを返すときも必ず載せ替える**。
+   * 新しい NextResponse.redirect() をそのまま返すと、更新後のトークンがブラウザに
+   * 届かない一方で古いリフレッシュトークンは使用済みになり、次のアクセスで
+   * 突然ログアウトする。@supabase/ssr 自身が警告している失敗そのもの。
+   */
+  const redirectKeeping = (url: URL) => {
+    const redirect = NextResponse.redirect(url)
+    for (const cookie of response.cookies.getAll()) {
+      redirect.cookies.set(cookie)
     }
+    return redirect
   }
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+
+  // ログインの結果が /auth/callback 以外に着地したら、そこへ回す。
+  // Supabase は戻り先が Redirect URLs に一致しないと Site URL に差し替えるので、
+  // コードやエラーがサイトのルートに落ちることがある。以前はそれを /login に
+  // 飛ばして捨てていた（URL に残っているのに、見る場所が無かった）。
+  //
+  // 公開パスは対象外。ここを外すと /login?error=… 自体がコールバックに見え、
+  // /auth/callback がまた /login?error=… を返して無限に往復する。
+  if (!isPublic && authCallbackParams(request.nextUrl.searchParams)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/callback'
+    return redirectKeeping(url)
+  }
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('next', pathname)
-    return NextResponse.redirect(url)
+    return redirectKeeping(url)
   }
 
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/workout'
+    // ログインに失敗して戻ってきた場合は、その理由を読ませてから追い出す。
+    // ここで search ごと捨てると、失敗の説明が誰にも見えない。
+    if (request.nextUrl.searchParams.has('error')) return response
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectKeeping(url)
   }
 
   return response
