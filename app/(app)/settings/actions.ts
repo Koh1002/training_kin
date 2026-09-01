@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { describePasswordError } from '@/lib/auth-errors'
 import { SKILL_CODES } from '@/lib/english/balance'
 import { SORENESS_CURVES } from '@/lib/workout/soreness'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
@@ -83,4 +84,42 @@ export async function signOut(): Promise<void> {
   const supabase = await createClient()
   await supabase.auth.signOut()
   redirect('/login')
+}
+
+const passwordSchema = z
+  .object({
+    password: z.string().min(8, { message: 'パスワードは8文字以上にしてください' }),
+    confirm: z.string(),
+  })
+  .refine((v) => v.password === v.confirm, {
+    message: '確認用のパスワードが一致しません',
+  })
+
+/**
+ * パスワードを変える。
+ *
+ * 忘れたときの復旧手段が Supabase の管理画面しか無い状態にはしない。
+ * メール送信を使わない構成なので、パスワードの再発行メールも届かない。
+ */
+export async function updatePassword(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, message: 'ログインが必要です' }
+
+  const parsed = passwordSchema.safeParse({
+    password: formData.get('password'),
+    confirm: formData.get('confirm'),
+  })
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? '入力を確認してください' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
+
+  if (error) {
+    return { ok: false, message: describePasswordError(error.code, error.status, error.message) }
+  }
+
+  return { ok: true, message: 'パスワードを変更しました' }
 }

@@ -5,7 +5,7 @@ import { SKILL_CODES, SKILL_LABELS, SKILL_LABELS_JA } from '@/lib/english/balanc
 import { SORENESS_CURVE_LABELS, type SorenessCurveKey } from '@/lib/workout/soreness'
 import type { SkillCode } from '@/types/database'
 import { Button } from '@/components/ui/button'
-import { updateGoals, updateProfile, type ActionState } from './actions'
+import { updateGoals, updatePassword, updateProfile, type ActionState } from './actions'
 
 const initial: ActionState = { ok: false }
 
@@ -114,6 +114,50 @@ export function GoalsForm({ goals }: { goals: Partial<Record<SkillCode, number>>
         {pending ? '保存中…' : '週の目標を保存'}
       </Button>
       <Status state={state} />
+    </form>
+  )
+}
+
+/**
+ * パスワードの変更。
+ *
+ * メール送信を使わない構成なので、忘れると再発行メールも届かない。
+ * ここから変えられるようにしておかないと、復旧手段が Supabase の管理画面だけになる。
+ */
+export function PasswordForm() {
+  const [state, action, pending] = useActionState(updatePassword, initial)
+
+  return (
+    <form action={action} className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="space-y-1.5 text-sm">
+          <span className="font-medium">新しいパスワード</span>
+          <input
+            name="password"
+            type="password"
+            required
+            minLength={8}
+            autoComplete="new-password"
+            className="field"
+          />
+        </label>
+        <label className="space-y-1.5 text-sm">
+          <span className="font-medium">確認のためもう一度</span>
+          <input
+            name="confirm"
+            type="password"
+            required
+            minLength={8}
+            autoComplete="new-password"
+            className="field"
+          />
+        </label>
+      </div>
+      <p className="text-xs text-muted">8文字以上。ほかで使っていないものにしてください。</p>
+      <Status state={state} />
+      <Button type="submit" variant="primary" size="lg" full disabled={pending}>
+        {pending ? '変更中…' : 'パスワードを変更'}
+      </Button>
     </form>
   )
 }

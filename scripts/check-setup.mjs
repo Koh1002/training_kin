@@ -303,23 +303,26 @@ if (settings.error || !settings.res.ok) {
   if (data.external?.email === false) {
     fail(
       'Email プロバイダが無効です',
-      'Authentication > Providers で Email を有効にしてください（無効だとログインリンクが届きません）',
+      'Authentication > Providers で Email を有効にしてください（無効だとログインも新規登録もできません）',
     )
   } else {
     ok('Email プロバイダが有効')
   }
 }
 
-// Redirect URL は API から確認できない。確認していないことを黙って伏せない。
-skip('Redirect URLs は API から確認できません', '下の「手で確認すること」を見てください')
+// この 2 つは API から確認できない。確認していないことを黙って伏せない。
+skip('「Confirm email」の状態は API から確認できません', '下の「手で確認すること」を見てください')
+skip('新規登録の可否は API から確認できません', '下の「手で確認すること」を見てください')
 
 // --- まとめ ------------------------------------------------------------------
 
 console.log(`\n${c.b}手で確認すること${c.x}`)
-console.log(`  Supabase の Authentication > URL Configuration > Redirect URLs に`)
-console.log(`  次が登録されているか（無いとログインリンクを踏んでも戻ってこられません）:`)
-console.log(`    ${c.d}http://localhost:3000/auth/callback${c.x}`)
-console.log(`    ${c.d}https://<本番のドメイン>/auth/callback${c.x}`)
+console.log(`  Authentication > Providers > Email で:`)
+console.log(`    ${c.d}Confirm email が「切」になっているか${c.x}`)
+console.log(`      有効だと新規登録でセッションが返らず、登録できたように見えて入れません。`)
+console.log(`    ${c.d}Allow new users to sign up の状態${c.x}`)
+console.log(`      アカウントを作り終えたら切ってください。1 人用なので、`)
+console.log(`      切らないとログイン画面に到達した人が誰でも登録できます。`)
 
 for (const note of notes) console.log(`\n${c.y}※ ${note}${c.x}`)
 
@@ -329,4 +332,4 @@ if (failures.length > 0) {
 }
 
 console.log(`\n${c.g}${c.b}問題は見つかりませんでした。${c.x}`)
-console.log(`${c.d}npm run dev で起動し、メールアドレスを入れてログインしてみてください。${c.x}`)
+console.log(`${c.d}npm run dev で起動し、「新規登録」からアカウントを作ってみてください。${c.x}`)
