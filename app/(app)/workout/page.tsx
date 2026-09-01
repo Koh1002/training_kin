@@ -6,7 +6,6 @@ import { DateNav } from '@/components/date-nav'
 import { SubNav } from '@/components/sub-nav'
 import { BodyMapPanel } from '@/components/workout/body-map-panel'
 import { EffortGauge } from '@/components/workout/effort-gauge'
-import { SetForm } from '@/components/workout/set-form'
 import type { MuscleBreakdown } from '@/components/body-map/body-map'
 import { shiftDate, todayJst } from '@/lib/date'
 import { muscleName, type MuscleCode } from '@/lib/muscles'
@@ -15,7 +14,6 @@ import { normalizeVolumes } from '@/lib/workout/color-scale'
 import {
   getDailySummaries,
   getExercises,
-  getLastInputs,
   getMuscleVolumeHistory,
   getProfile,
   getSession,
@@ -34,14 +32,13 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
   const raw = typeof params.date === 'string' ? params.date : ''
   const date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : todayJst()
 
-  const [profile, exercises, session, sets, history, summaries, lastInputs] = await Promise.all([
+  const [profile, exercises, session, sets, history, summaries] = await Promise.all([
     getProfile(user.id),
     getExercises(),
     getSession(user.id, date),
     getSetsForDate(user.id, date),
     getMuscleVolumeHistory(user.id, date),
     getDailySummaries(user.id, shiftDate(date, -30), date),
-    getLastInputs(user.id, shiftDate(date, -1)),
   ])
 
   const bodyweightKg = session?.bodyweight_kg ?? profile?.bodyweight_kg ?? 65
@@ -205,17 +202,6 @@ export default async function WorkoutPage(props: PageProps<'/workout'>) {
               })}
             </ul>
           )}
-        </Card>
-
-        <Card>
-          <CardTitle>種目を追加</CardTitle>
-          <SetForm
-            date={date}
-            exercises={exercises}
-            lastInputs={Object.fromEntries(lastInputs)}
-            recentExerciseIds={[...lastInputs.keys()]}
-            bodyweightKg={bodyweightKg}
-          />
         </Card>
       </div>
     </>

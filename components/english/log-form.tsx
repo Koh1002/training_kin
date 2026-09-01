@@ -11,13 +11,15 @@ type Props = {
   activities: EnglishActivity[]
   /** 最初に開いたときに選んでおく技能（いま最も遅れているもの） */
   defaultSkill: SkillCode
+  /** 記録できたときに呼ぶ。シートから使うとき、背後の一覧を取り直すのに使う */
+  onAdded?: () => void
 }
 
 const initialState: ActionState = { ok: false }
 const QUICK_MINUTES = [10, 15, 20, 30, 45, 60]
 
 /** 英語の記録入力。技能 → 項目 → 分の 3 タップで終わる。 */
-export function LogForm({ date, activities, defaultSkill }: Props) {
+export function LogForm({ date, activities, defaultSkill, onAdded }: Props) {
   const [state, action, pending] = useActionState(addEnglishLog, initialState)
   const [skill, setSkill] = useState<SkillCode>(defaultSkill)
   const [activityId, setActivityId] = useState<string | null>(null)
@@ -31,7 +33,10 @@ export function LogForm({ date, activities, defaultSkill }: Props) {
   const [handledState, setHandledState] = useState(state)
   if (state !== handledState) {
     setHandledState(state)
-    if (state.ok) setActivityId(null)
+    if (state.ok) {
+      setActivityId(null)
+      onAdded?.()
+    }
   }
 
   return (
